@@ -89,6 +89,7 @@ CREATE DATABASE IF NOT EXISTS webdelivery;
         FOREIGN KEY (id_prodotto) REFERENCES Prodotto(id)
     );
 
+    -- PERSONALIZZAZIONI ORDINI
     CREATE TABLE Variante_Riga_Ordine (
         id_riga INT NOT NULL,
         id_caratteristica INT NOT NULL,
@@ -107,5 +108,3 @@ CREATE DATABASE IF NOT EXISTS webdelivery;
         FOREIGN KEY (id_ordine) REFERENCES Ordine(id) ON DELETE CASCADE,
         FOREIGN KEY (id_personale) REFERENCES Utente(id)
     );
-
-    
