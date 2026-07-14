@@ -1,0 +1,39 @@
+.staff-body { background: var(--paper); }
+.staff-header { background: var(--ink); color: var(--paper); }
+.staff-header .brand-name { color: var(--paper); }
+.staff-header .user-chip { color: var(--paper-dark); }
+.staff-header .btn-ghost { border-color: var(--paper-dark); color: var(--paper); }
+.staff-header .btn-ghost:hover { background: rgba(255,255,255,.08); }
+
+.btn-small { padding: .4em .9em; font-size: .78rem; }
+
+.staff-main { max-width: 900px; margin: 0 auto; padding: 2.2rem 1.5rem 4rem; }
+
+
+.orders-tabs { flex-wrap: wrap; }
+
+.order-card-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 1.2rem; padding-top: 1rem; border-top: 1px dashed var(--line);
+  flex-wrap: wrap; gap: .8rem;
+}
+.order-card-meta { font-size: .85rem; color: var(--ink-soft); }
+.order-card-meta strong { color: var(--ink); }
+
+.staff-items { list-style: none; margin: 0 0 0; padding: 0; }
+.staff-items li {
+  font-size: .88rem; padding: .4em 0; border-bottom: 1px solid #f0ece2;
+  display: flex; justify-content: space-between; align-items: center; gap: .8em;
+}
+.staff-items .item-name-btn {
+  background: none; border: none; padding: 0; text-align: left; cursor: pointer;
+  color: var(--ink); font-family: var(--font-body); font-size: .88rem;
+  text-decoration: underline dotted var(--ink-soft); text-underline-offset: 3px;
+}
+.staff-items .item-opts { color: var(--ink-soft); font-size: .8rem; display: block; }
+
+.ingredient-list { list-style: none; margin: 0 0 1.1rem; padding: 0; font-size: .9rem; }
+.ingredient-list li { display: flex; justify-content: space-between; padding: .3em 0; border-bottom: 1px solid #f0ece2; }
+.ingredient-list li span:last-child { color: var(--ink-soft); }
+
+.staff-internal p { font-size: .9rem; }

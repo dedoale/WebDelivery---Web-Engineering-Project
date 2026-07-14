@@ -1,0 +1,47 @@
+.admin-main { max-width: 1080px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+.admin-nav {
+  display: flex; gap: 1rem; margin-bottom: 2rem;
+  border-bottom: 1.5px dashed var(--line); overflow-x: auto;
+}
+.admin-nav button {
+  background: none; border: none; padding: .8em .4em; margin-right: 1rem;
+  font-family: var(--font-display); font-size: .95rem; color: var(--ink-soft);
+  border-bottom: 2.5px solid transparent; margin-bottom: -1.5px; white-space: nowrap;
+}
+.admin-nav button.active { color: var(--ink); border-bottom-color: var(--stamp-red); }
+
+
+.stats-controls {
+  display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
+  background: #fff; padding: 1rem 1.5rem; border: 1.5px solid var(--ink);
+}
+.stats-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+.stat-card {
+  background: #fff; border: 1.5px solid var(--ink); padding: 1.5rem;
+  box-shadow: 4px 4px 0 var(--paper-dark), 4px 4px 0 1.5px var(--ink);
+}
+.stat-value { font-family: var(--font-display); font-size: 2rem; color: var(--stamp-red); margin: .2em 0; }
+.stat-label { font-size: .85rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .05em; font-family: var(--font-display); }
+
+.ranking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+.ranking-card { background: #fff; border: 1.5px solid var(--ink); padding: 1.5rem; }
+.ranking-list { list-style: none; margin: 1rem 0 0; padding: 0; }
+.ranking-list li { display: flex; justify-content: space-between; padding: .5em 0; border-bottom: 1px dashed var(--line); font-size: .9rem; }
+
+
+.admin-table-wrap { overflow-x: auto; background: #fff; border: 1.5px solid var(--ink); }
+.admin-table { width: 100%; border-collapse: collapse; text-align: left; font-size: .9rem; }
+.admin-table th {
+  background: var(--paper-dark); padding: .8rem 1rem;
+  font-family: var(--font-display); font-size: .75rem; text-transform: uppercase; color: var(--ink-soft);
+}
+.admin-table td { padding: .8rem 1rem; border-top: 1px solid var(--line); }
+.admin-table tr:hover td { background: var(--paper); }
+.table-actions { display: flex; gap: .5rem; }
+.btn-mini { padding: .2em .6em; font-size: .75rem; }
+
+.section-head-admin { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; }

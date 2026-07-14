@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Proprietario — Univaq Food Delivery</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/orders.css">
+<link rel="stylesheet" href="css/proprietario.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="proprietario.html" class="brand">
+      <span class="brand-mark">UFD</span>
+      <span class="brand-name">Direzione — Proprietario</span>
+    </a>
+    <div class="header-actions">
+      <span class="user-chip">Admin</span>
+      <a href="login.html" class="btn btn-ghost btn-small">Esci</a>
+    </div>
+  </div>
+</header>
+
+<main class="admin-main">
+  <nav class="admin-nav" id="adminNav" aria-label="Menu amministrazione">
+    <button data-target="sec-statistiche" class="active">Statistiche</button>
+    <button data-target="sec-ordini">Tutti gli Ordini</button>
+    <button data-target="sec-menu">Gestione Menu</button>
+    <button data-target="sec-personale">Staff</button>
+  </nav>
+
+  <!-- statistiche -->
+  <section id="sec-statistiche" class="admin-section">
+    <div class="stats-controls">
+      <div class="form-field">
+        <label for="statDate">Data di riferimento</label>
+        <!-- Impostato di default a metà luglio 2026, dove abbiamo generato gli ordini di mock -->
+        <input type="date" id="statDate" value="2026-07-14">
+      </div>
+      <button class="btn btn-primary" id="btnCalcStats">Calcola</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Incasso del Giorno</div>
+        <div class="stat-value" id="statIncassoGiorno">€0,00</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Incasso del Mese</div>
+        <div class="stat-value" id="statIncassoMese">€0,00</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ordini Completati (Oggi)</div>
+        <div class="stat-value" id="statOrdiniOggi">0</div>
+      </div>
+    </div>
+
+    <div class="ranking-grid">
+      <div class="ranking-card">
+        <div class="stat-label">I 3 Prodotti più venduti</div>
+        <ul class="ranking-list" id="listTopProducts"></ul>
+      </div>
+      <div class="ranking-card">
+        <div class="stat-label">I 3 Prodotti meno venduti</div>
+        <ul class="ranking-list" id="listFlopProducts"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ordini -->
+  <section id="sec-ordini" class="admin-section" hidden>
+    <div class="section-head-admin">
+      <div>
+        <p class="ticket-eyebrow">Monitoraggio globale</p>
+        <h2>Tutti gli ordini</h2>
+      </div>
+    </div>
+    <div class="orders-list" id="allOrdersList"></div>
+  </section>
+
+  <!-- menu' -->
+  <section id="sec-menu" class="admin-section" hidden>
+    <div class="section-head-admin">
+      <div>
+        <p class="ticket-eyebrow">Catalogo Prodotti</p>
+        <h2>Gestione Menu</h2>
+      </div>
+      <button class="btn btn-stamp" id="btnNuovoProdotto">+ Nuovo Prodotto</button>
+    </div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th><th>Categoria</th><th>Nome</th><th>Prezzo</th><th>Tempo (min)</th><th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody id="menuTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- personale -->
+  <section id="sec-personale" class="admin-section" hidden>
+    <div class="section-head-admin">
+      <div>
+        <p class="ticket-eyebrow">Gestione Utenze</p>
+        <h2>Membri del Personale</h2>
+      </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: start;">
+      <form class="auth-form" id="staffForm" style="background: #fff; padding: 1.5rem; border: 1.5px solid var(--ink);">
+        <h3>Nuovo membro</h3>
+        <div class="form-field">
+          <label>Nome e Cognome</label>
+          <input type="text" id="staffNome" required>
+        </div>
+        <div class="form-field">
+          <label>Email</label>
+          <input type="email" id="staffEmail" required>
+        </div>
+        <div class="form-field">
+          <label>Password provvisoria</label>
+          <input type="text" id="staffPassword" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Registra</button>
+      </form>
+      
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr><th>Nome</th><th>Email</th><th>Azioni</th></tr>
+          </thead>
+          <tbody id="staffTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>Progetto didattico realizzato per il corso di Web Engineering — Univaq Food Delivery™ è un'attività fittizia.</p>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/staff-data.js"></script>
+<script src="js/orders-data.js"></script>
+<script src="js/proprietario.js"></script>
+</body>
+</html>

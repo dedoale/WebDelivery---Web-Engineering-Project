@@ -33,5 +33,9 @@
             <version>2.3.32</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <finalName>webdelivery</finalName>
+    </build>
     
 </project>
