@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Il tuo ordine — Univaq Food Delivery</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/checkout.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">UFD</span>
+      <span class="brand-name">Univaq Food Delivery</span>
+    </a>
+    <nav class="main-nav" aria-label="Navigazione principale">
+      <a href="index.html#menu">Menu</a>
+      <a href="index.html#chi-siamo">Chi siamo</a>
+      <a href="index.html#dove-siamo">Dove siamo</a>
+    </nav>
+  </div>
+</header>
+
+<main class="checkout-main">
+
+  <!-- carrello vuoto -->
+  <section class="empty-state" id="emptyState" hidden>
+    <p class="ticket-eyebrow">Comanda vuota</p>
+    <h1>Il carrello è vuoto</h1>
+    <p>Non hai ancora selezionato nessun piatto.</p>
+    <a href="index.html#menu" class="btn btn-stamp">Torna al menu</a>
+  </section>
+
+  <!-- composizione ordine -->
+  <section class="checkout-layout" id="checkoutLayout" hidden>
+
+    <div class="order-summary">
+      <p class="ticket-eyebrow">Riepilogo comanda</p>
+      <h1>Il tuo ordine</h1>
+
+      <ul class="summary-list" id="summaryList"></ul>
+
+      <div class="summary-totals">
+        <div class="summary-row">
+          <span>Tempo di preparazione stimato</span>
+          <strong id="summaryPrepTime">—</strong>
+        </div>
+        <div class="summary-row muted">
+          <span>+ Tempo di consegna stimato (distanza)</span>
+          <strong id="summaryTravelTime">—</strong>
+        </div>
+        <div class="summary-row">
+          <span>Consegna stimata tra</span>
+          <strong id="summaryTotalTime">—</strong>
+        </div>
+        <div class="summary-row summary-total">
+          <span>Totale</span>
+          <strong id="summaryTotalPrice">€0,00</strong>
+        </div>
+      </div>
+    </div>
+
+    <form class="delivery-form" id="deliveryForm" novalidate>
+      <p class="ticket-eyebrow">Consegna</p>
+      <h2>Quando vuoi ricevere l'ordine?</h2>
+
+      <div class="form-field">
+        <label for="orario">Data e ora di consegna</label>
+        <input type="datetime-local" id="orario" name="orario" required>
+        <p class="field-hint" id="orarioHint">Calcolo la prima fascia disponibile…</p>
+        <p class="field-error" id="orarioError" role="alert"></p>
+      </div>
+
+      <div class="form-field">
+        <label for="note">Note per la cucina <span class="optional">(opzionale)</span></label>
+        <textarea id="note" name="note" rows="3" placeholder="Es. senza cipolla, citofono rotto, ecc."></textarea>
+      </div>
+
+      <div class="delivery-address" id="deliveryAddress">
+        <p class="ticket-eyebrow">Consegna presso</p>
+        <p id="addressLine">Accedi al tuo account per confermare l'indirizzo di consegna.</p>
+      </div>
+
+      <button type="submit" class="btn btn-stamp btn-full" id="confirmBtn">Conferma ordine</button>
+      <p class="field-hint">Riceverai una email di riepilogo e un aggiornamento quando l'ordine sarà in consegna.</p>
+    </form>
+  </section>
+
+  <!-- ordine confermato -->
+  <section class="confirm-state" id="confirmState" hidden>
+    <div class="confirm-ticket">
+      <p class="ticket-eyebrow">Ordine registrato</p>
+      <h1>Comanda inviata in cucina!</h1>
+      <p id="confirmSummary">Riceverai a breve una email di riepilogo.</p>
+      <dl class="confirm-facts">
+        <div><dt>Numero ordine</dt><dd id="confirmId">—</dd></div>
+        <div><dt>Consegna prevista</dt><dd id="confirmTime">—</dd></div>
+        <div><dt>Totale</dt><dd id="confirmPrice">—</dd></div>
+      </dl>
+      <a href="index.html" class="btn btn-stamp">Torna alla home</a>
+      <a href="storico-ordini.html" class="btn btn-ghost">Segui il tuo ordine</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>Progetto didattico realizzato per il corso di Web Engineering — Univaq Food Delivery™ è un'attività fittizia.</p>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/checkout.js"></script>
+</body>
+</html>
