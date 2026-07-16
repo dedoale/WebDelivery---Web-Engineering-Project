@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@WebServlet(name = "MenuServlet", urlPatterns = {"", "/menu", "/index.html"})
+@WebServlet(name = "MenuServlet", urlPatterns = { "/menu", "/index.html" })
 public class MenuServlet extends BaseServlet {
     private ProdottoDAO prodottoDAO;
 
@@ -24,9 +24,10 @@ public class MenuServlet extends BaseServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         List<Prodotto> prodotti = prodottoDAO.getAll();
-        
+
         // Estrai categorie distinte dai prodotti caricati
         List<String> categorie = new ArrayList<>();
         for (Prodotto p : prodotti) {
