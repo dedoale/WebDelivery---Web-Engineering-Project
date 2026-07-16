@@ -1,28 +1,28 @@
 package it.univaq.webdelivery.controller;
 
-import it.univaq.webdelivery.data.dao.OrdineDAO;
-import it.univaq.webdelivery.data.dao.ProdottoDAO;
-import it.univaq.webdelivery.data.dao.UtenteDAO;
-import it.univaq.webdelivery.data.model.RigaOrdine;
-import it.univaq.webdelivery.data.model.Ordine;
-
-import it.univaq.webdelivery.data.model.Utente;
-
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.time.LocalDateTime;
+
+import it.univaq.webdelivery.data.dao.OrdineDAO;
+import it.univaq.webdelivery.data.dao.ProdottoDAO;
+import it.univaq.webdelivery.data.dao.UtenteDAO;
+import it.univaq.webdelivery.data.model.Ordine;
+import it.univaq.webdelivery.data.model.RigaOrdine;
+import it.univaq.webdelivery.data.model.Utente;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @WebServlet(name = "ProprietarioServlet", urlPatterns = {
     "/proprietario", 
@@ -67,19 +67,17 @@ public class ProprietarioServlet extends BaseServlet {
         Map<String, Integer> freqProdotti = new HashMap<>();
 
         for (Ordine o : ordini) {
-            if (o.getOrarioRichiesto() != null) {
-                String orarioStr = o.getOrarioRichiesto().replace(" ", "T");
-                LocalDate oDate;
-                try {
-                    oDate = LocalDateTime.parse(orarioStr).toLocalDate();
-                } catch (DateTimeParseException e) {
-                    continue;
-                }
+            LocalDateTime orario = o.getOrarioRichiesto(); 
+        
+            if (orario != null) {
+                LocalDate oDate = orario.toLocalDate();
                 
+                // calcolo incasso mensile 
                 if (oDate.getYear() == targetDate.getYear() && oDate.getMonth() == targetDate.getMonth()) {
                     incassoMese = incassoMese.add(BigDecimal.valueOf(o.getPrezzoTotale()));
                 }
 
+                // calcolo incasso giornaliero
                 if (oDate.equals(targetDate)) {
                     incassoGiorno = incassoGiorno.add(BigDecimal.valueOf(o.getPrezzoTotale()));
                     ordiniOggi++;
