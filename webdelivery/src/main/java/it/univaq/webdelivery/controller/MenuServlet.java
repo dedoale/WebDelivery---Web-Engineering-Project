@@ -7,7 +7,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,12 +39,6 @@ public class MenuServlet extends BaseServlet {
         dataModel.put("prodotti", prodotti);
         dataModel.put("categorie", categorie);
 
-        // Aggiungi utente in sessione se presente
-        HttpSession session = request.getSession(false);
-        if (session != null && session.getAttribute("utente") != null) {
-            dataModel.put("utente", session.getAttribute("utente"));
-        }
-
-        renderTemplate("index.ftl", dataModel, response);
+        renderTemplate("index.ftl", dataModel, request, response);
     }
 }

@@ -6,6 +6,8 @@ import it.univaq.webdelivery.data.model.Utente;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class UtenteDAO {
 
@@ -21,7 +23,7 @@ public class UtenteDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(UtenteDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
         }
         return null;
     }
@@ -46,7 +48,7 @@ public class UtenteDAO {
                 return true;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(UtenteDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
         }
         return false;
     }
@@ -61,7 +63,7 @@ public class UtenteDAO {
                 staff.add(mapUtente(rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(UtenteDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
         }
         return staff;
     }
@@ -84,7 +86,7 @@ public class UtenteDAO {
                 return true;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(UtenteDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
         }
         return false;
     }
@@ -96,7 +98,7 @@ public class UtenteDAO {
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(UtenteDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
         }
         return false;
     }

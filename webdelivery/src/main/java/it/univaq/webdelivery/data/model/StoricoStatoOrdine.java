@@ -1,16 +1,18 @@
 package it.univaq.webdelivery.data.model;
 
+import java.time.LocalDateTime;
+
 public class StoricoStatoOrdine {
     private int id;
     private int id_ordine;
     private Integer id_personale; // può essere null se inserito dal cliente
     private String personale;      // Nome del membro del personale (es. "Luca B.") per il JSON
     private String stato;
-    private String timestamp;      // Stringa ISO del timestamp per il JSON
+    private LocalDateTime timestamp;      // Stringa ISO del timestamp per il JSON
 
     public StoricoStatoOrdine() {}
 
-    public StoricoStatoOrdine(int id, int id_ordine, Integer id_personale, String personale, String stato, String timestamp) {
+    public StoricoStatoOrdine(int id, int id_ordine, Integer id_personale, String personale, String stato, LocalDateTime timestamp) {
         this.id = id;
         this.id_ordine = id_ordine;
         this.id_personale = id_personale;
@@ -59,11 +61,11 @@ public class StoricoStatoOrdine {
         this.stato = stato;
     }
 
-    public String getTimestamp() {
+    public LocalDateTime getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(String timestamp) {
+    public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
     }
 }

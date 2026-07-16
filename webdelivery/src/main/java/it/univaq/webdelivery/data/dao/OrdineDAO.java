@@ -8,6 +8,8 @@ import it.univaq.webdelivery.data.model.StoricoStatoOrdine;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class OrdineDAO {
 
@@ -22,14 +24,13 @@ public class OrdineDAO {
             conn = DbConnectionManager.getConnection();
             conn.setAutoCommit(false); // Inizia transazione
 
-            // 1. Inserisci Ordine
+            // Inserisci Ordine
             try (PreparedStatement ps = conn.prepareStatement(insertOrdineSql, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setInt(1, o.getIdCliente());
                 ps.setDouble(2, o.getPrezzoTotale());
                 ps.setInt(3, o.getTempoConsegnaStimato());
-                // Formato MySQL DATETIME: YYYY-MM-DD HH:MM:SS. Sostituiamo eventuale 'T' del formato ISO.
-                String reqTime = o.getOrarioRichiesto().replace("T", " ");
-                ps.setString(4, reqTime);
+                // Formato MySQL DATETIME: YYYY-MM-DD HH:MM:SS
+                ps.setTimestamp(4, java.sql.Timestamp.valueOf(o.getOrarioRichiesto()));
                 ps.setString(5, o.getStatoAttuale());
 
                 int rows = ps.executeUpdate();
@@ -46,7 +47,7 @@ public class OrdineDAO {
                 }
             }
 
-            // 2. Inserisci righe ordine
+            // Inserisci righe ordine
             for (RigaOrdine riga : o.getRighe()) {
                 try (PreparedStatement ps = conn.prepareStatement(insertRigaSql, Statement.RETURN_GENERATED_KEYS)) {
                     ps.setInt(1, o.getIdDb());
@@ -64,7 +65,7 @@ public class OrdineDAO {
                     }
                 }
 
-                // 3. Inserisci varianti per ciascuna riga
+                // Inserisci varianti per ciascuna riga
                 for (RigaOrdine.CaratteristicaScelta var : riga.getCaratteristicheScelte()) {
                     try (PreparedStatement ps = conn.prepareStatement(insertVarianteSql)) {
                         ps.setInt(1, riga.getId());
@@ -75,7 +76,7 @@ public class OrdineDAO {
                 }
             }
 
-            // 4. Inserisci lo stato iniziale nello Storico (id_personale = id_cliente poiché l'ordine viene inserito dal cliente)
+            // Inserisci lo stato iniziale nello Storico (id_personale = id_cliente poiché l'ordine viene inserito dal cliente)
             try (PreparedStatement ps = conn.prepareStatement(insertStoricoSql)) {
                 ps.setInt(1, o.getIdDb());
                 ps.setInt(2, o.getIdCliente());
@@ -86,12 +87,12 @@ public class OrdineDAO {
             return true;
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(OrdineDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
             if (conn != null) {
                 try {
                     conn.rollback(); // Rollback in caso di errore
                 } catch (SQLException ex) {
-                    ex.printStackTrace();
+                    Logger.getLogger(OrdineDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", ex);
                 }
             }
         } finally {
@@ -99,7 +100,7 @@ public class OrdineDAO {
                 try {
                     conn.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    Logger.getLogger(OrdineDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
                 }
             }
         }
@@ -119,7 +120,7 @@ public class OrdineDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(OrdineDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
         }
         return list;
     }
@@ -135,7 +136,7 @@ public class OrdineDAO {
                 list.add(fetchOrdineRelazioni(conn, rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(OrdineDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
         }
         return list;
     }
@@ -151,12 +152,16 @@ public class OrdineDAO {
                 list.add(fetchOrdineRelazioni(conn, rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(OrdineDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
         }
         return list;
     }
 
     public boolean updateStato(int idOrdine, String nuovoStato, int idStaff) {
+        // Definizione della sequenza corretta degli stati
+        List<String> sequenzaStati = List.of("Inserito", "In preparazione", "Pronto", "In consegna", "Consegnato");
+
+        String selectSql = "SELECT stato_attuale FROM Ordine WHERE id = ? FOR UPDATE";
         String updateSql = "UPDATE Ordine SET stato_attuale = ? WHERE id = ?";
         String insertStoricoSql = "INSERT INTO Storico_Stato_Ordine (id_ordine, id_personale, stato, timestamp_modifica) VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
         
@@ -165,12 +170,42 @@ public class OrdineDAO {
             conn = DbConnectionManager.getConnection();
             conn.setAutoCommit(false);
 
+            // Recupero stato attuale db
+            String statoAttuale = null;
+            try (PreparedStatement psSelect = conn.prepareStatement(selectSql)) {
+                psSelect.setInt(1, idOrdine);
+                try (ResultSet rs = psSelect.executeQuery()) {
+                    if (rs.next()) {
+                        statoAttuale = rs.getString("stato_attuale");
+                    }
+                }
+            }
+
+            // Se l'ordine non esiste, annulla la transazione
+            if (statoAttuale == null) {
+                conn.rollback();
+                return false;
+            }
+
+            // Controllo progressione dello stato
+            int indexAttuale = sequenzaStati.indexOf(statoAttuale);
+            int indexNuovo = sequenzaStati.indexOf(nuovoStato);
+
+            // Si puo' avanzare solo di 1 step
+            if (indexAttuale == -1 || indexNuovo == -1 || indexNuovo != indexAttuale + 1) {
+                System.out.println("[SICUREZZA] Tentativo di transizione di stato non valida da " + statoAttuale + " a " + nuovoStato);
+                conn.rollback(); // Annulla la transazione
+                return false; 
+            }
+
+            // Update stato dell'ordine nel db
             try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
                 ps.setString(1, nuovoStato);
                 ps.setInt(2, idOrdine);
                 ps.executeUpdate();
             }
 
+            // Inserimento nello storico nel db
             try (PreparedStatement ps = conn.prepareStatement(insertStoricoSql)) {
                 ps.setInt(1, idOrdine);
                 ps.setInt(2, idStaff);
@@ -180,21 +215,24 @@ public class OrdineDAO {
 
             conn.commit();
             return true;
+
+
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(OrdineDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
             if (conn != null) {
                 try {
-                    conn.rollback();
+                    conn.rollback(); // rollback totale in caso di eccezioni sql
                 } catch (SQLException ex) {
-                    ex.printStackTrace();
+                    Logger.getLogger(OrdineDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", ex);
                 }
             }
         } finally {
             if (conn != null) {
                 try {
+                    conn.setAutoCommit(true); // ripristina l'auto-commit
                     conn.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    Logger.getLogger(OrdineDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
                 }
             }
         }
@@ -208,7 +246,7 @@ public class OrdineDAO {
             rs.getString("nome_cliente"),
             rs.getDouble("prezzo_totale"),
             rs.getInt("tempo_consegna_stimato"),
-            rs.getString("orario_richiesto").replace(" ", "T"), // Formatta ISO per il JS
+            rs.getTimestamp("orario_richiesto").toLocalDateTime(),
             rs.getString("stato_attuale")
         );
         o.setRighe(getRighePerOrdine(conn, o.getIdDb()));
@@ -273,7 +311,7 @@ public class OrdineDAO {
                         rs.getInt("id_personale"),
                         nomePersonale,
                         rs.getString("stato"),
-                        rs.getString("timestamp_modifica").replace(" ", "T") // ISO format
+                        rs.getTimestamp("timestamp_modifica").toLocalDateTime()
                     ));
                 }
             }

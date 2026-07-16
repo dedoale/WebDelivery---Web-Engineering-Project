@@ -8,7 +8,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -26,17 +25,11 @@ public class StaffServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("utente") == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
+        // verifica autenticazione e ruolo
+        Utente utente = richiediAutenticazione(request, response);
+        if (utente == null) return;
 
-        Utente utente = (Utente) session.getAttribute("utente");
-        if (!"Personale".equalsIgnoreCase(utente.getRuolo()) && !"Proprietario".equalsIgnoreCase(utente.getRuolo())) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Accesso non autorizzato.");
-            return;
-        }
+        if (!verificaRuoli(utente, response, "Personale", "Proprietario")) return;
 
         List<Ordine> ordiniCorrenti = ordineDAO.getOrdiniCorrenti();
 
@@ -44,37 +37,34 @@ public class StaffServlet extends BaseServlet {
         dataModel.put("utente", utente);
         dataModel.put("ordiniCorrenti", ordiniCorrenti);
 
-        renderTemplate("personale.ftl", dataModel, response);
+        renderTemplate("personale.ftl", dataModel, request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("utente") == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
+        // verifica autenticazione e ruolo
+        Utente utente = richiediAutenticazione(request, response);
+        if (utente == null) return;
 
-        Utente utente = (Utente) session.getAttribute("utente");
-        if (!"Personale".equalsIgnoreCase(utente.getRuolo()) && !"Proprietario".equalsIgnoreCase(utente.getRuolo())) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Accesso non autorizzato.");
-            return;
-        }
+        if (!verificaRuoli(utente, response, "Personale", "Proprietario")) return;
 
+        // aggiornamento stato dell'ordine 
         String path = request.getServletPath();
         if ("/personale/aggiorna-stato".equals(path)) {
-            String ordineIdStr = request.getParameter("ordine_id");
+            int idOrdine = getIntParameter(request, "ordine_id", -1);
             String nuovoStato = request.getParameter("stato");
 
-            if (ordineIdStr != null && nuovoStato != null) {
-                try {
-                    int idOrdine = Integer.parseInt(ordineIdStr);
-                    ordineDAO.updateStato(idOrdine, nuovoStato, utente.getId());
-                } catch (NumberFormatException e) {
-                    e.printStackTrace();
+            if (idOrdine != -1 && nuovoStato != null) {
+                // esegue l'aggiornamento e controlla se è andato a buon fine
+                boolean successo = ordineDAO.updateStato(idOrdine, nuovoStato, utente.getId());
+                
+                if (!successo) {
+                    System.out.println("Aggiornamento dello stato fallito per l'ordine #" + idOrdine);
                 }
             }
         }
+        
+        response.sendRedirect(request.getContextPath() + "/personale");
         
         response.sendRedirect(request.getContextPath() + "/personale");
     }
