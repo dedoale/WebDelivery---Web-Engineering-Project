@@ -51,17 +51,17 @@
         <#list ordini as o>
         {
             id: "WD-${o.id?c}",
-            data: "${o.orarioRichiesto?string("yyyy-MM-dd'T'HH:mm:ss")}",
+            data: "${o.orarioRichiesto}",
             totale: ${o.prezzoTotale?c},
             stato_attuale: "${o.statoAttuale?js_string}",
             dettagli: [
                 <#list o.righe as r>
                 {
-                    nome: "${r.prodotto.nome?js_string}",
-                    quantita: ${r.quantita},
+                    nome: "${r.nome?js_string}",
+                    quantita: ${r.qty},
                     varianti: [
-                        <#list r.variantiScelte as v>
-                        "${v.caratteristica.nome?js_string}"<#sep>, </#sep>
+                        <#list r.opzioni as opt>
+                        "${opt?js_string}"<#sep>, </#sep>
                         </#list>
                     ]
                 }<#sep>,</#sep>
@@ -71,7 +71,7 @@
                 <#list o.storico as st>
                 {
                     stato: "${st.stato?js_string}",
-                    orario: "${st.timestampModifica?string("HH:mm")}"
+                    orario: "${st.timestamp?substring(11, 16)}"
                 }<#sep>,</#sep>
                 </#list>
             ]

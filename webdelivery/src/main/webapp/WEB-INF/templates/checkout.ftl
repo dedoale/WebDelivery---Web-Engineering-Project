@@ -135,7 +135,7 @@
                     id: ${g.id},
                     nome: "${g.nome?js_string}",
                     opzioni: [
-                        <#list g.caratteristiche as c>
+                        <#list g.opzioni as c>
                         {
                             id: ${c.id},
                             nome: "${c.nome?js_string}",

@@ -188,16 +188,16 @@
     const ORDINI_CORRENTI = [
         <#list ordini as o>
         {
-            id: "WD-${o.id?c}",
-            cliente: "${o.cliente.nome?js_string}",
-            orario_richiesto: "${o.orarioRichiesto?string("yyyy-MM-dd'T'HH:mm:ss")}",
+            id: "${o.id}",
+            cliente: "${o.cliente?js_string}",
+            orario_richiesto: "${o.orarioRichiesto}",
             prezzo_totale: ${o.prezzoTotale?c},
             stato_attuale: "${o.statoAttuale?js_string}",
             righe: [
                 <#list o.righe as r>
                 {
-                    prodotto_id: ${r.prodotto.id},
-                    qty: ${r.quantita}
+                    prodotto_id: ${r.prodottoId},
+                    qty: ${r.qty}
                 }<#sep>,</#sep>
                 </#list>
             ],
@@ -205,8 +205,8 @@
                 <#list o.storico as st>
                 {
                     stato: "${st.stato?js_string}",
-                    personale: "${(st.personale??)?then(st.personale.nome, '')?js_string}",
-                    timestamp: "${st.timestampModifica?string("yyyy-MM-dd'T'HH:mm:ss")}"
+                    personale: "${(st.personale!'')?js_string}",
+                    timestamp: "${st.timestamp}"
                 }<#sep>,</#sep>
                 </#list>
             ]

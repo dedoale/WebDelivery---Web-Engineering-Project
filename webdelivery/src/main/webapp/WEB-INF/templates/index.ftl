@@ -147,7 +147,7 @@
             categoria: "${(p.categoria!'')?js_string}",
             ingredienti: [
                 <#list p.ingredienti as i>
-                "${i.ingrediente.nome?js_string}"<#sep>,</#sep>
+                "${i.nome?js_string}"<#sep>,</#sep>
                 </#list>
             ],
             gruppi_caratteristiche: [
@@ -157,13 +157,13 @@
                     nome: "${g.nome?js_string}",
                     mutua_esclusione: ${g.mutuaEsclusione?c},
                     opzioni: [
-                        <#list g.caratteristiche as c>
+                        <#list g.opzioni as c>
                         {
                             id: ${c.id},
                             nome: "${c.nome?js_string}",
                             descrizione: "${(c.descrizione!'')?js_string}",
                             differenza_prezzo: ${c.differenzaPrezzo?c},
-                            is_default: ${c.isDefault?c}
+                            is_default: ${c.isDefault()?c}
                         }<#sep>,</#sep>
                         </#list>
                     ]
@@ -175,6 +175,11 @@
     ];
 
     const categorie = [...new Set(prodotti.map(p => p.categoria))].filter(Boolean);
+
+    const MENU_DATA = {
+        prodotti: prodotti,
+        categorie: categorie
+    };
 </script>
 <script src="js/menu.js"></script>
 </body>
