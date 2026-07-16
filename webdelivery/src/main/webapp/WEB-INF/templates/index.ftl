@@ -23,8 +23,14 @@
     </nav>
 
     <div class="header-actions">
-      <a href="login.html" class="btn btn-ghost">Accedi</a>
-      <a href="registrazione.html" class="btn btn-primary">Registrati</a>
+      <#if utente??>
+        <span class="user-greeting" style="margin-right: 15px;">Ciao, ${utente.nome}</span>
+        <a href="ordini" class="btn btn-ghost">I miei ordini</a>
+        <a href="logout" class="btn btn-ghost">Esci</a>
+      <#else>
+        <a href="login" class="btn btn-ghost">Accedi</a>
+        <a href="registrazione" class="btn btn-primary">Registrati</a>
+      </#if>
       <button class="cart-btn" id="cartToggle" aria-label="Apri carrello" aria-expanded="false">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
         <span class="cart-count" id="cartCount">0</span>
@@ -118,7 +124,7 @@
   <div class="cart-summary">
     <div class="cart-row"><span>Tempo stimato</span><strong id="cartTime">—</strong></div>
     <div class="cart-row cart-total"><span>Totale</span><strong id="cartTotal">€0,00</strong></div>
-    <a href="checkout.html" class="btn btn-stamp btn-full">Procedi all'ordine</a>
+    <a href="checkout" class="btn btn-stamp btn-full">Procedi all'ordine</a>
   </div>
 </aside>
 <div class="cart-scrim" id="cartScrim"></div>
@@ -127,7 +133,49 @@
   <p>Progetto didattico realizzato per il corso di Web Engineering — Univaq Food Delivery™ è un'attività fittizia.</p>
 </footer>
 
-<script src="js/data.js"></script>
+<script>
+    // Iniezione dinamica dei dati dal database tramite FreeMarker
+    const prodotti = [
+        <#list prodotti as p>
+        {
+            id: ${p.id},
+            nome: "${p.nome?js_string}",
+            descrizione: "${p.descrizione?js_string}",
+            prezzo_base: ${p.prezzoBase?c},
+            immagine: "${p.immagine!''}",
+            tempo_preparazione: ${p.tempoPreparazione},
+            categoria: "${(p.categoria!'')?js_string}",
+            ingredienti: [
+                <#list p.ingredienti as i>
+                "${i.ingrediente.nome?js_string}"<#sep>,</#sep>
+                </#list>
+            ],
+            gruppi_caratteristiche: [
+                <#list p.gruppi as g>
+                {
+                    id: ${g.id},
+                    nome: "${g.nome?js_string}",
+                    mutua_esclusione: ${g.mutuaEsclusione?c},
+                    opzioni: [
+                        <#list g.caratteristiche as c>
+                        {
+                            id: ${c.id},
+                            nome: "${c.nome?js_string}",
+                            descrizione: "${(c.descrizione!'')?js_string}",
+                            differenza_prezzo: ${c.differenzaPrezzo?c},
+                            is_default: ${c.isDefault?c}
+                        }<#sep>,</#sep>
+                        </#list>
+                    ]
+                }<#sep>,</#sep>
+                </#list>
+            ]
+        }<#sep>,</#sep>
+        </#list>
+    ];
+
+    const categorie = [...new Set(prodotti.map(p => p.categoria))].filter(Boolean);
+</script>
 <script src="js/menu.js"></script>
 </body>
 </html>

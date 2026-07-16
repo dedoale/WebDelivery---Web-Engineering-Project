@@ -11,14 +11,14 @@
 
 <header class="site-header">
   <div class="header-inner">
-    <a href="index.html" class="brand">
+    <a href="menu" class="brand">
       <span class="brand-mark">UFD</span>
       <span class="brand-name">Univaq Food Delivery</span>
     </a>
     <nav class="main-nav" aria-label="Navigazione principale">
-      <a href="index.html#menu">Menu</a>
-      <a href="index.html#chi-siamo">Chi siamo</a>
-      <a href="index.html#dove-siamo">Dove siamo</a>
+      <a href="menu#menu">Menu</a>
+      <a href="menu#chi-siamo">Chi siamo</a>
+      <a href="menu#dove-siamo">Dove siamo</a>
     </nav>
   </div>
 </header>
@@ -30,7 +30,7 @@
     <p class="ticket-eyebrow">Comanda vuota</p>
     <h1>Il carrello è vuoto</h1>
     <p>Non hai ancora selezionato nessun piatto.</p>
-    <a href="index.html#menu" class="btn btn-stamp">Torna al menu</a>
+    <a href="menu#menu" class="btn btn-stamp">Torna al menu</a>
   </section>
 
   <!-- composizione ordine -->
@@ -80,7 +80,11 @@
 
       <div class="delivery-address" id="deliveryAddress">
         <p class="ticket-eyebrow">Consegna presso</p>
-        <p id="addressLine">Accedi al tuo account per confermare l'indirizzo di consegna.</p>
+        <#if utente??>
+          <p id="addressLine">${utente.indirizzo}</p>
+        <#else>
+          <p id="addressLine">Devi effettuare l'<a href="login">accesso</a> per confermare l'ordine.</p>
+        </#if>
       </div>
 
       <button type="submit" class="btn btn-stamp btn-full" id="confirmBtn">Conferma ordine</button>
@@ -99,8 +103,8 @@
         <div><dt>Consegna prevista</dt><dd id="confirmTime">—</dd></div>
         <div><dt>Totale</dt><dd id="confirmPrice">—</dd></div>
       </dl>
-      <a href="index.html" class="btn btn-stamp">Torna alla home</a>
-      <a href="storico-ordini.html" class="btn btn-ghost">Segui il tuo ordine</a>
+      <a href="menu" class="btn btn-stamp">Torna alla home</a>
+      <a href="ordini" class="btn btn-ghost">Segui il tuo ordine</a>
     </div>
   </section>
 
@@ -110,7 +114,42 @@
   <p>Progetto didattico realizzato per il corso di Web Engineering — Univaq Food Delivery™ è un'attività fittizia.</p>
 </footer>
 
-<script src="js/data.js"></script>
+<script>
+    <#if utente??>
+    const LOGGED_USER = { id: ${utente.id}, nome: "${utente.nome?js_string}" };
+    <#else>
+    const LOGGED_USER = null;
+    </#if>
+
+    // Iniezione dinamica dei dati dal database per il calcolo dei totali
+    const prodotti = [
+        <#list prodotti as p>
+        {
+            id: ${p.id},
+            nome: "${p.nome?js_string}",
+            prezzo_base: ${p.prezzoBase?c},
+            tempo_preparazione: ${p.tempoPreparazione},
+            gruppi_caratteristiche: [
+                <#list p.gruppi as g>
+                {
+                    id: ${g.id},
+                    nome: "${g.nome?js_string}",
+                    opzioni: [
+                        <#list g.caratteristiche as c>
+                        {
+                            id: ${c.id},
+                            nome: "${c.nome?js_string}",
+                            differenza_prezzo: ${c.differenzaPrezzo?c}
+                        }<#sep>,</#sep>
+                        </#list>
+                    ]
+                }<#sep>,</#sep>
+                </#list>
+            ]
+        }<#sep>,</#sep>
+        </#list>
+    ];
+</script>
 <script src="js/checkout.js"></script>
 </body>
 </html>

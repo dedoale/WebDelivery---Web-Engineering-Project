@@ -12,13 +12,13 @@
 
 <header class="site-header">
   <div class="header-inner">
-    <a href="proprietario.html" class="brand">
+    <a href="proprietario" class="brand">
       <span class="brand-mark">UFD</span>
       <span class="brand-name">Direzione — Proprietario</span>
     </a>
     <div class="header-actions">
-      <span class="user-chip">Admin</span>
-      <a href="login.html" class="btn btn-ghost btn-small">Esci</a>
+      <span class="user-chip"><#if utente??>${utente.nome}<#else>Admin</#if></span>
+      <a href="logout" class="btn btn-ghost btn-small">Esci</a>
     </div>
   </div>
 </header>
@@ -33,38 +33,53 @@
 
   <!-- statistiche -->
   <section id="sec-statistiche" class="admin-section">
-    <div class="stats-controls">
+    <form class="stats-controls" action="proprietario" method="GET">
       <div class="form-field">
         <label for="statDate">Data di riferimento</label>
-        <!-- Impostato di default a metà luglio 2026, dove abbiamo generato gli ordini di mock -->
-        <input type="date" id="statDate" value="2026-07-14">
+        <input type="date" id="statDate" name="statDate" value="${statDate}">
       </div>
-      <button class="btn btn-primary" id="btnCalcStats">Calcola</button>
-    </div>
+      <button type="submit" class="btn btn-primary" id="btnCalcStats">Calcola</button>
+    </form>
 
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-label">Incasso del Giorno</div>
-        <div class="stat-value" id="statIncassoGiorno">€0,00</div>
+        <div class="stat-value">€${incassoGiorno?string("0.00")}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Incasso del Mese</div>
-        <div class="stat-value" id="statIncassoMese">€0,00</div>
+        <div class="stat-value">€${incassoMese?string("0.00")}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Ordini Completati (Oggi)</div>
-        <div class="stat-value" id="statOrdiniOggi">0</div>
+        <div class="stat-value">${ordiniOggi}</div>
       </div>
     </div>
 
     <div class="ranking-grid">
       <div class="ranking-card">
         <div class="stat-label">I 3 Prodotti più venduti</div>
-        <ul class="ranking-list" id="listTopProducts"></ul>
+        <ul class="ranking-list">
+          <#if topProdotti?size == 0>
+            <li>Nessun dato per questa data</li>
+          <#else>
+            <#list topProdotti as p>
+              <li><span>${p.key}</span> <strong>${p.value} pz.</strong></li>
+            </#list>
+          </#if>
+        </ul>
       </div>
       <div class="ranking-card">
         <div class="stat-label">I 3 Prodotti meno venduti</div>
-        <ul class="ranking-list" id="listFlopProducts"></ul>
+        <ul class="ranking-list">
+          <#if flopProdotti?size == 0>
+            <li>Nessun dato per questa data</li>
+          <#else>
+            <#list flopProdotti as p>
+              <li><span>${p.key}</span> <strong>${p.value} pz.</strong></li>
+            </#list>
+          </#if>
+        </ul>
       </div>
     </div>
   </section>
@@ -145,9 +160,62 @@
   <p>Progetto didattico realizzato per il corso di Web Engineering — Univaq Food Delivery™ è un'attività fittizia.</p>
 </footer>
 
-<script src="js/data.js"></script>
-<script src="js/staff-data.js"></script>
-<script src="js/orders-data.js"></script>
+<script>
+    const MENU_DATA = {
+        prodotti: [
+            <#list prodotti as p>
+            {
+                id: ${p.id},
+                nome: "${p.nome?js_string}",
+                categoria: "${(p.categoria!'')?js_string}",
+                prezzo_base: ${p.prezzoBase?c},
+                tempo_preparazione: ${p.tempoPreparazione}
+            }<#sep>,</#sep>
+            </#list>
+        ]
+    };
+
+    let STAFF_DATA = [
+        <#list staff as s>
+        {
+            id: ${s.id},
+            nome: "${s.nome?js_string}",
+            email: "${s.email?js_string}"
+        }<#sep>,</#sep>
+        </#list>
+    ];
+
+    const ORDINI_CORRENTI = [
+        <#list ordini as o>
+        {
+            id: "WD-${o.id?c}",
+            cliente: "${o.cliente.nome?js_string}",
+            orario_richiesto: "${o.orarioRichiesto?string("yyyy-MM-dd'T'HH:mm:ss")}",
+            prezzo_totale: ${o.prezzoTotale?c},
+            stato_attuale: "${o.statoAttuale?js_string}",
+            righe: [
+                <#list o.righe as r>
+                {
+                    prodotto_id: ${r.prodotto.id},
+                    qty: ${r.quantita}
+                }<#sep>,</#sep>
+                </#list>
+            ],
+            storico: [
+                <#list o.storico as st>
+                {
+                    stato: "${st.stato?js_string}",
+                    personale: "${(st.personale??)?then(st.personale.nome, '')?js_string}",
+                    timestamp: "${st.timestampModifica?string("yyyy-MM-dd'T'HH:mm:ss")}"
+                }<#sep>,</#sep>
+                </#list>
+            ]
+        }<#sep>,</#sep>
+        </#list>
+    ];
+
+    const ORDINI_CLIENTE = [];
+</script>
 <script src="js/proprietario.js"></script>
 </body>
 </html>
