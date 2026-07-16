@@ -8,6 +8,8 @@ import it.univaq.webdelivery.data.model.Prodotto;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ProdottoDAO {
 
@@ -24,7 +26,7 @@ public class ProdottoDAO {
                 prodotti.add(p);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(ProdottoDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
         }
         return prodotti;
     }
@@ -43,7 +45,7 @@ public class ProdottoDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(ProdottoDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
         }
         return null;
     }
@@ -69,7 +71,7 @@ public class ProdottoDAO {
                 return true;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(ProdottoDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
         }
         return false;
     }
@@ -88,7 +90,7 @@ public class ProdottoDAO {
 
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(ProdottoDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
         }
         return false;
     }
@@ -100,7 +102,7 @@ public class ProdottoDAO {
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(ProdottoDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
         }
         return false;
     }

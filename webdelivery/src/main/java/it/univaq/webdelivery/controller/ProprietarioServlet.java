@@ -3,6 +3,8 @@ package it.univaq.webdelivery.controller;
 import it.univaq.webdelivery.data.dao.OrdineDAO;
 import it.univaq.webdelivery.data.dao.ProdottoDAO;
 import it.univaq.webdelivery.data.dao.UtenteDAO;
+import it.univaq.webdelivery.data.model.RigaOrdine;
+import it.univaq.webdelivery.data.model.Ordine;
 
 import it.univaq.webdelivery.data.model.Utente;
 
@@ -10,19 +12,16 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
-import it.univaq.webdelivery.data.model.RigaOrdine;
-import it.univaq.webdelivery.data.model.Ordine;
 import java.time.LocalDateTime;
 
 @WebServlet(name = "ProprietarioServlet", urlPatterns = {
@@ -46,17 +45,11 @@ public class ProprietarioServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("utente") == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
+        // controllo sessione
+        Utente utente = richiediAutenticazione(request, response);
+        if (utente == null) return;
 
-        Utente utente = (Utente) session.getAttribute("utente");
-        if (!"Proprietario".equalsIgnoreCase(utente.getRuolo())) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Accesso riservato al proprietario.");
-            return;
-        }
+        if (!verificaRuoli(utente, response, "Proprietario")) return;
 
         List<Ordine> ordini = ordineDAO.getAll();
 
@@ -128,22 +121,16 @@ public class ProprietarioServlet extends BaseServlet {
         dataModel.put("topProdotti", topProdotti);
         dataModel.put("flopProdotti", flopProdotti);
 
-        renderTemplate("proprietario.ftl", dataModel, response);
+        renderTemplate("proprietario.ftl", dataModel, request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("utente") == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
+        // controllo sessione
+        Utente utente = richiediAutenticazione(request, response);
+        if (utente == null) return;
 
-        Utente utente = (Utente) session.getAttribute("utente");
-        if (!"Proprietario".equalsIgnoreCase(utente.getRuolo())) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Accesso riservato al proprietario.");
-            return;
-        }
+        if (!verificaRuoli(utente, response, "Proprietario")) return;
 
         String path = request.getServletPath();
 
@@ -167,7 +154,7 @@ public class ProprietarioServlet extends BaseServlet {
                     int id = Integer.parseInt(idStr);
                     utenteDAO.removeStaff(id);
                 } catch (NumberFormatException e) {
-                    e.printStackTrace();
+                    Logger.getLogger(ProprietarioServlet.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
                 }
             }
         } else if ("/proprietario/menu/elimina".equals(path)) {
@@ -177,7 +164,7 @@ public class ProprietarioServlet extends BaseServlet {
                     int id = Integer.parseInt(idStr);
                     prodottoDAO.delete(id);
                 } catch (NumberFormatException e) {
-                    e.printStackTrace();
+                    Logger.getLogger(ProprietarioServlet.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
                 }
             }
         }

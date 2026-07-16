@@ -2,6 +2,7 @@ package it.univaq.webdelivery.data.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 
 public class Ordine {
     private String id; // Formato stringa atteso dal frontend (es. "WD-1")
@@ -10,7 +11,7 @@ public class Ordine {
     private String cliente; // Nome del cliente per lo staff (es. "Mario Rossi")
     private double prezzo_totale; // prezzo_totale nel JSON
     private int tempo_consegna_stimato;
-    private String orario_richiesto; // ISO String (es. "2026-07-14T20:15:00")
+    private LocalDateTime orario_richiesto; // ISO String (es. "2026-07-14T20:15:00")
     private String stato_attuale; // stato_attuale nel JSON
     
     private List<RigaOrdine> righe = new ArrayList<>();
@@ -18,7 +19,7 @@ public class Ordine {
 
     public Ordine() {}
 
-    public Ordine(int id_db, int id_cliente, String cliente, double prezzo_totale, int tempo_consegna_stimato, String orario_richiesto, String stato_attuale) {
+    public Ordine(int id_db, int id_cliente, String cliente, double prezzo_totale, int tempo_consegna_stimato, LocalDateTime orario_richiesto, String stato_attuale) {
         this.id_db = id_db;
         this.id = "WD-" + id_db;
         this.id_cliente = id_cliente;
@@ -78,11 +79,11 @@ public class Ordine {
         this.tempo_consegna_stimato = tempo_consegna_stimato;
     }
 
-    public String getOrarioRichiesto() {
+    public LocalDateTime getOrarioRichiesto() {
         return orario_richiesto;
     }
 
-    public void setOrarioRichiesto(String orario_richiesto) {
+    public void setOrarioRichiesto(LocalDateTime orario_richiesto) {
         this.orario_richiesto = orario_richiesto;
     }
 

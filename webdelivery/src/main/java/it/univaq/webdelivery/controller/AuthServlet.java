@@ -44,9 +44,9 @@ public class AuthServlet extends BaseServlet {
         }
 
         if ("/login".equals(path)) {
-            renderTemplate("login.ftl", dataModel, response);
+            renderTemplate("login.ftl", dataModel, request, response);
         } else if ("/registrazione".equals(path)) {
-            renderTemplate("registrazione.ftl", dataModel, response);
+            renderTemplate("registrazione.ftl", dataModel, request, response);
         }
     }
 
@@ -74,7 +74,7 @@ public class AuthServlet extends BaseServlet {
                 }
             } else {
                 dataModel.put("error", "Email o password non valide.");
-                renderTemplate("login.ftl", dataModel, response);
+                renderTemplate("login.ftl", dataModel, request, response);
             }
         } else if ("/registrazione".equals(path)) {
             String nome = request.getParameter("nome");
@@ -97,7 +97,7 @@ public class AuthServlet extends BaseServlet {
                 response.sendRedirect(request.getContextPath() + "/");
             } else {
                 dataModel.put("error", "Errore durante la registrazione. Email già registrata.");
-                renderTemplate("registrazione.ftl", dataModel, response);
+                renderTemplate("registrazione.ftl", dataModel, request, response);
             }
         }
     }

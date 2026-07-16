@@ -11,7 +11,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.time.LocalDateTime;
 
 @WebServlet(name = "CheckoutServlet", urlPatterns = {"/checkout"})
 public class CheckoutServlet extends BaseServlet {
@@ -34,28 +34,23 @@ public class CheckoutServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("utente") == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
+        // controllo sessione
+        Utente utente = richiediAutenticazione(request, response);
+        if (utente == null) return;
 
-        Utente utente = (Utente) session.getAttribute("utente");
         Map<String, Object> dataModel = new HashMap<>();
         dataModel.put("utente", utente);
 
-        renderTemplate("checkout.ftl", dataModel, response);
+        renderTemplate("checkout.ftl", dataModel, request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("utente") == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
+        // controllo sessione
+        Utente utente = richiediAutenticazione(request, response);
+        if (utente == null) return;
 
-        Utente utente = (Utente) session.getAttribute("utente");
+
         String orario = request.getParameter("orario");
         String cartData = request.getParameter("cart_data");
 
@@ -64,18 +59,18 @@ public class CheckoutServlet extends BaseServlet {
 
         if (orario == null || cartData == null || cartData.trim().isEmpty()) {
             dataModel.put("error", "Dati dell'ordine non completi.");
-            renderTemplate("checkout.ftl", dataModel, response);
+            renderTemplate("checkout.ftl", dataModel, request, response);
             return;
         }
 
-        // 1. Parsifica il carrello JSON inviato dal client
+        // Parsifica il carrello JSON inviato dal client
         List<RigaOrdine> righe = parseCartJson(cartData);
         if (righe.isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/menu");
             return;
         }
 
-        // 2. Calcola i prezzi e i tempi reali leggendo dal DB per sicurezza
+        // Calcola i prezzi e i tempi reali leggendo dal DB per sicurezza
         double totaleOrdine = 0;
         int tempoPreparazioneTotale = 0;
 
@@ -103,17 +98,17 @@ public class CheckoutServlet extends BaseServlet {
         // Aggiungiamo 10 minuti di percorrenza stimata, come definito in checkout.js
         int tempoConsegnaStimato = tempoPreparazioneTotale + 10;
 
-        // 3. Crea l'oggetto Ordine
+        // Crea l'oggetto Ordine
         Ordine ordine = new Ordine();
         ordine.setIdCliente(utente.getId());
         ordine.setCliente(utente.getNome());
         ordine.setPrezzoTotale(totaleOrdine);
         ordine.setTempoConsegnaStimato(tempoConsegnaStimato);
-        ordine.setOrarioRichiesto(orario);
+        ordine.setOrarioRichiesto(LocalDateTime.parse(orario));
         ordine.setStatoAttuale("Inserito");
         ordine.setRighe(righe);
 
-        // 4. Salva nel database
+        // Salva nel database
         if (ordineDAO.create(ordine)) {
             dataModel.put("ordineConfermato", true);
             dataModel.put("confermatoOrdine", ordine);
@@ -121,7 +116,7 @@ public class CheckoutServlet extends BaseServlet {
             dataModel.put("error", "Si è verificato un errore durante il salvataggio dell'ordine. Riprova.");
         }
 
-        renderTemplate("checkout.ftl", dataModel, response);
+        renderTemplate("checkout.ftl", dataModel, request, response);
     }
 
     // Cerca la differenza di prezzo nel catalogo caricato
