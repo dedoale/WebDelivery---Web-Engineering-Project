@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@WebServlet(name = "MenuServlet", urlPatterns = {"/menu", "/index.html"})
+@WebServlet(name = "MenuServlet", urlPatterns = {"", "/menu", "/index.html"})
 public class MenuServlet extends BaseServlet {
     private ProdottoDAO prodottoDAO;
 

@@ -1,6 +1,7 @@
 package it.univaq.webdelivery.controller;
 
 import it.univaq.webdelivery.data.dao.OrdineDAO;
+import it.univaq.webdelivery.data.dao.ProdottoDAO;
 import it.univaq.webdelivery.data.model.Ordine;
 import it.univaq.webdelivery.data.model.Utente;
 
@@ -16,11 +17,13 @@ import java.util.Map;
 @WebServlet(name = "StaffServlet", urlPatterns = {"/personale", "/personale/aggiorna-stato"})
 public class StaffServlet extends BaseServlet {
     private OrdineDAO ordineDAO;
+    private ProdottoDAO prodottoDAO;
 
     @Override
     public void init() throws ServletException {
         super.init();
         this.ordineDAO = new OrdineDAO();
+        this.prodottoDAO = new ProdottoDAO();
     }
 
     @Override
@@ -36,6 +39,7 @@ public class StaffServlet extends BaseServlet {
         Map<String, Object> dataModel = new HashMap<>();
         dataModel.put("utente", utente);
         dataModel.put("ordiniCorrenti", ordiniCorrenti);
+        dataModel.put("prodotti", prodottoDAO.getAll());
 
         renderTemplate("personale.ftl", dataModel, request, response);
     }

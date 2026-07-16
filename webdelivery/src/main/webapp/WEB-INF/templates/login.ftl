@@ -11,14 +11,14 @@
 
 <header class="site-header">
   <div class="header-inner">
-    <a href="index.html" class="brand">
+    <a href="menu" class="brand">
       <span class="brand-mark">UFD</span>
       <span class="brand-name">Univaq Food Delivery</span>
     </a>
     <nav class="main-nav" aria-label="Navigazione principale">
-      <a href="index.html#menu">Menu</a>
-      <a href="index.html#chi-siamo">Chi siamo</a>
-      <a href="index.html#dove-siamo">Dove siamo</a>
+      <a href="menu#menu">Menu</a>
+      <a href="menu#chi-siamo">Chi siamo</a>
+      <a href="menu#dove-siamo">Dove siamo</a>
     </nav>
   </div>
 </header>
@@ -29,8 +29,12 @@
     <h1>Bentornato</h1>
     <p class="auth-sub">Accedi per completare un ordine o rivedere lo storico dei tuoi acquisti.</p>
 
+    <#if error??>
+      <div class="field-error" style="display:block; margin-bottom:1rem; font-weight:bold; color:var(--stamp-red);">${error}</div>
+    </#if>
+
     <!-- form action + method POST -->
-    <form class="auth-form" action="/webdelivery/login" method="post" id="loginForm" novalidate>
+    <form class="auth-form" action="login" method="post" id="loginForm" novalidate>
       <div class="form-field">
         <label for="email">Email</label>
         <input type="email" id="email" name="email" required autocomplete="username" placeholder="mario.rossi@email.it">
@@ -57,7 +61,7 @@
 
       <button type="submit" class="btn btn-stamp btn-full">Accedi</button>
 
-      <p class="auth-switch">Non hai un account? <a href="registrazione.html">Registrati come nuovo cliente</a></p>
+      <p class="auth-switch">Non hai un account? <a href="registrazione">Registrati come nuovo cliente</a></p>
     </form>
 
     <div class="ticket-tear" aria-hidden="true"></div>

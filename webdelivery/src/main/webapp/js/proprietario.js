@@ -26,81 +26,7 @@
     });
   });
 
-  // statistiche
-  function calcolaStatistiche() {
-    const dataSelezionata = new Date(document.getElementById("statDate").value);
-    if(isNaN(dataSelezionata)) return;
 
-    const targetYear = dataSelezionata.getFullYear();
-    const targetMonth = dataSelezionata.getMonth();
-    const targetDay = dataSelezionata.getDate();
-
-    // da modificare con le servlet
-    const tuttiGliOrdini = [...ORDINI_CORRENTI, ...ORDINI_CLIENTE];
-    
-    let incassoGiorno = 0;
-    let incassoMese = 0;
-    let ordiniGiorno = 0;
-    const frequenzaProdotti = {};
-
-    tuttiGliOrdini.forEach(o => {
-      const d = new Date(o.orario_richiesto);
-      const isSameMonth = d.getFullYear() === targetYear && d.getMonth() === targetMonth;
-      const isSameDay = isSameMonth && d.getDate() === targetDay;
-
-      // ricalcolo prezzo_totale per il frontend se manca
-      let prezzoOrd = o.prezzo_totale;
-      if (prezzoOrd === undefined) {
-        prezzoOrd = o.righe.reduce((sum, r) => {
-          const p = MENU_DATA.prodotti.find(prod => prod.id === r.prodotto_id);
-          return sum + (p ? p.prezzo_base * r.qty : 0);
-        }, 0);
-      }
-
-      if (isSameMonth) incassoMese += prezzoOrd;
-      if (isSameDay) {
-        incassoGiorno += prezzoOrd;
-        ordiniGiorno++;
-        
-        // popolo la frequenza per i piu' richiesti/meno rischiesti
-        // al momento li prende da staff-data.js e orders-data.js
-        // da modificare con le servlet
-        o.righe.forEach(r => {
-          // Gestisce sia il formato di staff-data.js (prodotto_id) che di orders-data.js (nome)
-          let nome = r.nome;
-          if (!nome && r.prodotto_id) {
-             const p = MENU_DATA.prodotti.find(prod => prod.id === r.prodotto_id);
-             if (p) nome = p.nome;
-          }
-          if (nome) {
-            frequenzaProdotti[nome] = (frequenzaProdotti[nome] || 0) + r.qty;
-          }
-        });
-      }
-    });
-
-    document.getElementById("statIncassoGiorno").textContent = fmt(incassoGiorno);
-    document.getElementById("statIncassoMese").textContent = fmt(incassoMese);
-    document.getElementById("statOrdiniOggi").textContent = ordiniGiorno;
-
-    // calcolo i piu' e i meno richiesti
-    const arrayFrequenze = Object.entries(frequenzaProdotti).sort((a, b) => b[1] - a[1]);
-    
-    const topList = document.getElementById("listTopProducts");
-    const flopList = document.getElementById("listFlopProducts");
-    
-    if (arrayFrequenze.length === 0) {
-      topList.innerHTML = "<li>Nessun dato per questa data</li>";
-      flopList.innerHTML = "<li>Nessun dato per questa data</li>";
-    } else {
-      topList.innerHTML = arrayFrequenze.slice(0, 3).map(i => `<li><span>${i[0]}</span> <strong>${i[1]} pz.</strong></li>`).join("");
-      // per i meno richiesti, inverto l'array e prendo gli ultimi 3
-      const flopArr = [...arrayFrequenze].reverse().slice(0, 3);
-      flopList.innerHTML = flopArr.map(i => `<li><span>${i[0]}</span> <strong>${i[1]} pz.</strong></li>`).join("");
-    }
-  }
-
-  document.getElementById("btnCalcStats").addEventListener("click", calcolaStatistiche);
 
   // tutti gli ordini
   function renderAllOrders() {
@@ -218,7 +144,6 @@
 
 
   // init
-  calcolaStatistiche();
   renderAllOrders();
   renderMenuTable();
   renderStaffTable();
