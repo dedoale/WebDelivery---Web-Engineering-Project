@@ -126,19 +126,19 @@
     </div>
     
     <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: start;">
-      <form class="auth-form" id="staffForm" style="background: #fff; padding: 1.5rem; border: 1.5px solid var(--ink);">
+      <form class="auth-form" id="staffForm" action="proprietario/personale/aggiungi" method="POST" style="background: #fff; padding: 1.5rem; border: 1.5px solid var(--ink);">
         <h3>Nuovo membro</h3>
         <div class="form-field">
           <label>Nome e Cognome</label>
-          <input type="text" id="staffNome" required>
+          <input type="text" id="staffNome" name="nome" required>
         </div>
         <div class="form-field">
           <label>Email</label>
-          <input type="email" id="staffEmail" required>
+          <input type="email" id="staffEmail" name="email" required>
         </div>
         <div class="form-field">
           <label>Password provvisoria</label>
-          <input type="text" id="staffPassword" required>
+          <input type="text" id="staffPassword" name="password" required>
         </div>
         <button type="submit" class="btn btn-primary btn-full">Registra</button>
       </form>
@@ -156,6 +156,73 @@
 
 </main>
 
+<!-- modale aggiungi / ripristina prodotto -->
+  <div class="modal-backdrop" id="modalNewProduct">
+    <div class="modal-ticket" style="max-width: 600px; padding: 2rem;">
+      <button class="modal-close" onclick="document.getElementById('modalNewProduct').classList.remove('open')">&times;</button>
+      
+      <h3>Aggiungi Nuovo Prodotto</h3>
+      <form action="proprietario/menu/aggiungi" method="POST" class="auth-form" style="margin-bottom: 2rem;">
+        <div class="form-row-split">
+          <div class="form-field"><label>Nome</label><input type="text" name="nome" required></div>
+          <div class="form-field"><label>Prezzo Base (€)</label><input type="number" step="0.01" name="prezzo_base" required></div>
+        </div>
+        <div class="form-row-split" style="margin-top: 1rem;">
+          <div class="form-field"><label>Tempo Prep. (min)</label><input type="number" name="tempo_preparazione" required></div>
+          <div class="form-field"><label>Categoria</label><input type="text" name="categoria"></div>
+        </div>
+        <div class="form-field" style="margin-top: 1rem;">
+          <label>Descrizione</label>
+          <textarea name="descrizione" rows="2" required style="width:100%; border:1.5px solid var(--line); border-radius:2px; padding:0.5em; font-family:var(--font-body)"></textarea>
+        </div>
+        <button type="submit" class="btn btn-stamp btn-full">Salva Nuovo Prodotto</button>
+      </form>
+
+      <hr style="border: 0; border-top: 1px dashed var(--line); margin: 2rem 0;">
+      
+      <h3>Cestino (Eliminati di Recente)</h3>
+      <ul class="ranking-list">
+        <#if prodottiInattivi?? && prodottiInattivi?size gt 0>
+          <#list prodottiInattivi as pi>
+            <li style="display:flex; justify-content:space-between; align-items:center; padding: 0.8rem 0;">
+              <span><strong>${pi.nome}</strong> <span style="color:var(--ink-soft); font-size:0.8rem;">(€${pi.prezzoBase?string("0.00")})</span></span>
+              <form action="proprietario/menu/ripristina" method="POST" style="margin:0;">
+                <input type="hidden" name="prodotto_id" value="${pi.id}">
+                <button type="submit" class="btn btn-ghost btn-mini" style="color:var(--kitchen-green)">Ripristina</button>
+              </form>
+            </li>
+          </#list>
+        <#else>
+          <li><span style="color:var(--ink-soft);">Nessun prodotto nel cestino.</span></li>
+        </#if>
+      </ul>
+    </div>
+  </div>
+
+  <!-- modale modifica prodotto -->
+  <div class="modal-backdrop" id="modalEditProduct">
+    <div class="modal-ticket" style="max-width: 600px; padding: 2rem;">
+      <button class="modal-close" onclick="document.getElementById('modalEditProduct').classList.remove('open')">&times;</button>
+      <h3>Modifica Prodotto</h3>
+      <form action="proprietario/menu/modifica" method="POST" class="auth-form">
+        <input type="hidden" name="prodotto_id" id="edit_id">
+        <div class="form-row-split">
+          <div class="form-field"><label>Nome</label><input type="text" name="nome" id="edit_nome" required></div>
+          <div class="form-field"><label>Prezzo Base (€)</label><input type="number" step="0.01" name="prezzo_base" id="edit_prezzo" required></div>
+        </div>
+        <div class="form-row-split" style="margin-top: 1rem;">
+          <div class="form-field"><label>Tempo Prep. (min)</label><input type="number" name="tempo_preparazione" id="edit_tempo" required></div>
+          <div class="form-field"><label>Categoria</label><input type="text" name="categoria" id="edit_categoria"></div>
+        </div>
+        <div class="form-field" style="margin-top: 1rem;">
+          <label>Descrizione</label>
+          <textarea name="descrizione" id="edit_descrizione" rows="2" required style="width:100%; border:1.5px solid var(--line); border-radius:2px; padding:0.5em; font-family:var(--font-body)"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Aggiorna Prodotto</button>
+      </form>
+    </div>
+  </div>
+
 <footer class="site-footer">
   <p>Progetto didattico realizzato per il corso di Web Engineering — Univaq Food Delivery™ è un'attività fittizia.</p>
 </footer>
@@ -169,7 +236,8 @@
                 nome: "${p.nome?js_string}",
                 categoria: "${(p.categoria!'')?js_string}",
                 prezzo_base: ${p.prezzoBase?c},
-                tempo_preparazione: ${p.tempoPreparazione}
+                tempo_preparazione: ${p.tempoPreparazione},
+                descrizione: "${p.descrizione?js_string}"
             }<#sep>,</#sep>
             </#list>
         ]
@@ -188,16 +256,16 @@
     const ORDINI_CORRENTI = [
         <#list ordini as o>
         {
-            id: "WD-${o.id?c}",
-            cliente: "${o.cliente.nome?js_string}",
-            orario_richiesto: "${o.orarioRichiesto?string("yyyy-MM-dd'T'HH:mm:ss")}",
+            id: "${o.id?js_string}",
+            cliente: "${o.cliente?js_string}",
+            orario_richiesto: "${o.orarioRichiesto.format("yyyy-MM-dd'T'HH:mm:ss")}",
             prezzo_totale: ${o.prezzoTotale?c},
             stato_attuale: "${o.statoAttuale?js_string}",
             righe: [
                 <#list o.righe as r>
                 {
-                    prodotto_id: ${r.prodotto.id},
-                    qty: ${r.quantita}
+                    prodotto_id: ${r.prodottoId},
+                    qty: ${r.qty}
                 }<#sep>,</#sep>
                 </#list>
             ],
@@ -205,8 +273,8 @@
                 <#list o.storico as st>
                 {
                     stato: "${st.stato?js_string}",
-                    personale: "${(st.personale??)?then(st.personale.nome, '')?js_string}",
-                    timestamp: "${st.timestampModifica?string("yyyy-MM-dd'T'HH:mm:ss")}"
+                    personale: "${(st.personale!'')?js_string}",
+                    timestamp: "${st.timestamp.format("yyyy-MM-dd'T'HH:mm:ss")}"
                 }<#sep>,</#sep>
                 </#list>
             ]

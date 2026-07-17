@@ -17,7 +17,7 @@ CREATE DATABASE IF NOT EXISTS webdelivery;
     -- UTENTI
     CREATE TABLE Utente (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        ruolo ENUM('Proprietario', 'Personale', 'Cliente') NOT NULL,
+        ruolo ENUM('Proprietario', 'Personale', 'Cliente', 'Utente-Eliminato') NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         nome VARCHAR(100) NOT NULL,
@@ -31,9 +31,11 @@ CREATE DATABASE IF NOT EXISTS webdelivery;
         nome VARCHAR(100) NOT NULL,
         descrizione TEXT NOT NULL,
         prezzo_base DECIMAL(6,2) NOT NULL,
+        categoria VARCHAR(50) DEFAULT 'Altro',
         immagine VARCHAR(255),
-        tempo_preparazione INT NOT NULL, -- Espresso in minuti
-        procedura TEXT
+        tempo_preparazione INT NOT NULL, -- espresso in minuti
+        procedura TEXT,
+        is_active BOOLEAN NOT NULL DEFAULT 1
     );
 
     CREATE TABLE Ingrediente (

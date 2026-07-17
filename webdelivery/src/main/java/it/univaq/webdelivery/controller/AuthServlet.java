@@ -2,6 +2,7 @@ package it.univaq.webdelivery.controller;
 
 import it.univaq.webdelivery.data.dao.UtenteDAO;
 import it.univaq.webdelivery.data.model.Utente;
+import it.univaq.webdelivery.util.PasswordUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -83,10 +84,16 @@ public class AuthServlet extends BaseServlet {
             String telefono = request.getParameter("telefono");
             String indirizzo = request.getParameter("indirizzo");
 
+            if (password == null || password.length() < 8) {
+                dataModel.put("error", "La password deve contenere almeno 8 caratteri.");
+                renderTemplate("registrazione.ftl", dataModel, request, response);
+                return;
+            }
+
             Utente u = new Utente();
             u.setNome(nome);
             u.setEmail(email);
-            u.setPasswordHash(password); // In chiaro per i test iniziali
+            u.setPasswordHash(PasswordUtil.hash(password));
             u.setTelefono(telefono);
             u.setIndirizzo(indirizzo);
             u.setRuolo("Cliente");

@@ -69,7 +69,5 @@ public class StaffServlet extends BaseServlet {
         }
         
         response.sendRedirect(request.getContextPath() + "/personale");
-        
-        response.sendRedirect(request.getContextPath() + "/personale");
     }
 }

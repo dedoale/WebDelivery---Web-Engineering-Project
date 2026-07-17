@@ -1,45 +1,7 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Univaq Food Delivery — WebDelivery</title>
-<link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+<#import "base.ftl" as layout>
 
-<!-- header -->
-<header class="site-header">
-  <div class="header-inner">
-    <a href="#" class="brand">
-      <span class="brand-mark">UFD</span>
-      <span class="brand-name">Univaq Food Delivery</span>
-    </a>
+<@layout.page title="Menu — Univaq Food Delivery" customScripts="<script src='js/menu.js'></script>">
 
-    <nav class="main-nav" aria-label="Navigazione principale">
-      <a href="#menu">Menu</a>
-      <a href="#chi-siamo">Chi siamo</a>
-      <a href="#dove-siamo">Dove siamo</a>
-    </nav>
-
-    <div class="header-actions">
-      <#if utente??>
-        <span class="user-greeting" style="margin-right: 15px;">Ciao, ${utente.nome}</span>
-        <a href="ordini" class="btn btn-ghost">I miei ordini</a>
-        <a href="logout" class="btn btn-ghost">Esci</a>
-      <#else>
-        <a href="login" class="btn btn-ghost">Accedi</a>
-        <a href="registrazione" class="btn btn-primary">Registrati</a>
-      </#if>
-      <button class="cart-btn" id="cartToggle" aria-label="Apri carrello" aria-expanded="false">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
-        <span class="cart-count" id="cartCount">0</span>
-      </button>
-    </div>
-  </div>
-</header>
-
-<!-- hero -->
 <section class="hero">
   <div class="hero-ticket">
     <div class="ticket-hole"></div>
@@ -51,7 +13,6 @@
   </div>
 </section>
 
-<!-- menu' -->
 <main>
 <section class="menu-section" id="menu">
   <div class="section-head">
@@ -60,9 +21,29 @@
   </div>
 
   <nav class="category-tabs" id="categoryTabs" aria-label="Filtra per categoria">
+    <button data-cat="Tutte" class="active">Tutte</button>
+    <#list categorie as cat>
+      <button data-cat="${cat}">${cat}</button>
+    </#list>
   </nav>
 
   <div class="menu-grid" id="menuGrid">
+    <#list prodotti as p>
+    <article class="product-card" tabindex="0" data-id="${p.id}" role="button" data-cat="${p.categoria}" aria-label="${p.nome}, €${p.prezzoBase}">
+      <div class="product-img">
+        <#if p.immagine?? && p.immagine?trim != "">
+          <img src="img/${p.immagine}" alt="${p.nome}">
+        <#else>
+          Nessuna immagine
+        </#if>
+      </div>
+      <h3 class="product-name">${p.nome}</h3>
+      <p class="product-desc">${p.descrizione}</p>
+      <div class="product-foot">
+        <span class="product-price">€${p.prezzoBase?string("0.00")}</span>
+      </div>
+    </article>
+    </#list>
   </div>
 </section>
 
@@ -71,7 +52,7 @@
     <h2>Chi siamo</h2>
     <p>Univaq Food Delivery nasce nel 2026 come piccola realtà per far fronte alle esigenze culinarie degli studenti universitari fuori sede. Piatti semplici, gustosi ed economici consegnati direttamente alla tua porta di casa, caldi come al tavolo.</p>
     <dl class="about-facts">
-      <div><dt>Orari</dt><dd>Da Lunedì a Venerdì<br> 12:00–15:00 <br> 19:00–23:00</dd></div>
+      <div><dt>Orari</dt><dd>Tutti i giorni<br> 12:00–15:00 <br> 19:00–23:00</dd></div>
       <div><dt>Zona di consegna</dt><dd>Entro 6&nbsp;km dal locale</dd></div>
       <div><dt>Tempo medio di consegna</dt><dd>25–40 minuti</dd></div>
     </dl>
@@ -86,96 +67,4 @@
 </section>
 </main>
 
-<!-- modale prodotto -->
-<div class="modal-backdrop" id="modalBackdrop">
-  <div class="modal-ticket" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <button class="modal-close" id="modalClose" aria-label="Chiudi">✕</button>
-    <div class="modal-img" id="modalImg"></div>
-    <div class="modal-body">
-      <p class="ticket-eyebrow" id="modalCategory">Categoria</p>
-      <h3 id="modalTitle">Nome prodotto</h3>
-      <p class="modal-desc" id="modalDesc">Descrizione</p>
-
-      <div id="modalGroups"><!-- gruppi caratteristiche generati via JS --></div>
-
-      <div class="modal-footer">
-        <div class="qty-control">
-          <button id="qtyMinus" aria-label="Diminuisci quantità">−</button>
-          <span id="qtyValue">1</span>
-          <button id="qtyPlus" aria-label="Aumenta quantità">+</button>
-        </div>
-        <button class="btn btn-stamp" id="addToCart">
-          Aggiungi — <span id="modalPrice">€0,00</span>
-        </button>
-      </div>
-      <p class="modal-note">Registrati per completare un ordine. Puoi comunque comporre il carrello come ospite.</p>
-    </div>
-  </div>
-</div>
-
-<!-- cart drawer -->
-<aside class="cart-drawer" id="cartDrawer" aria-label="Carrello">
-  <div class="cart-drawer-head">
-    <h3>Il tuo ordine</h3>
-    <button id="cartClose" aria-label="Chiudi carrello">✕</button>
-  </div>
-  <ul class="cart-list" id="cartList"></ul>
-  <div class="cart-empty" id="cartEmpty">Il carrello è vuoto. Aggiungi qualcosa dal menu!</div>
-  <div class="cart-summary">
-    <div class="cart-row"><span>Tempo stimato</span><strong id="cartTime">—</strong></div>
-    <div class="cart-row cart-total"><span>Totale</span><strong id="cartTotal">€0,00</strong></div>
-    <a href="checkout" class="btn btn-stamp btn-full">Procedi all'ordine</a>
-  </div>
-</aside>
-<div class="cart-scrim" id="cartScrim"></div>
-
-<footer class="site-footer">
-  <p>Progetto didattico realizzato per il corso di Web Engineering — Univaq Food Delivery™ è un'attività fittizia.</p>
-</footer>
-
-<script>
-    // Iniezione dinamica dei dati dal database tramite FreeMarker
-    const prodotti = [
-        <#list prodotti as p>
-        {
-            id: ${p.id},
-            nome: "${p.nome?js_string}",
-            descrizione: "${p.descrizione?js_string}",
-            prezzo_base: ${p.prezzoBase?c},
-            immagine: "${p.immagine!''}",
-            tempo_preparazione: ${p.tempoPreparazione},
-            categoria: "${(p.categoria!'')?js_string}",
-            ingredienti: [
-                <#list p.ingredienti as i>
-                "${i.ingrediente.nome?js_string}"<#sep>,</#sep>
-                </#list>
-            ],
-            gruppi_caratteristiche: [
-                <#list p.gruppi as g>
-                {
-                    id: ${g.id},
-                    nome: "${g.nome?js_string}",
-                    mutua_esclusione: ${g.mutuaEsclusione?c},
-                    opzioni: [
-                        <#list g.caratteristiche as c>
-                        {
-                            id: ${c.id},
-                            nome: "${c.nome?js_string}",
-                            descrizione: "${(c.descrizione!'')?js_string}",
-                            differenza_prezzo: ${c.differenzaPrezzo?c},
-                            is_default: ${c.isDefault?c}
-                        }<#sep>,</#sep>
-                        </#list>
-                    ]
-                }<#sep>,</#sep>
-                </#list>
-            ]
-        }<#sep>,</#sep>
-        </#list>
-    ];
-
-    const categorie = [...new Set(prodotti.map(p => p.categoria))].filter(Boolean);
-</script>
-<script src="js/menu.js"></script>
-</body>
-</html>
+</@layout.page>

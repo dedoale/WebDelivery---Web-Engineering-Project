@@ -1,19 +1,19 @@
 package it.univaq.webdelivery.controller;
 
+import java.io.IOException;
+import java.util.Map;
+
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import it.univaq.webdelivery.data.DbConnectionManager;
 import it.univaq.webdelivery.data.model.Utente;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Map;
+import jakarta.servlet.http.HttpSession;
 import no.api.freemarker.java8.Java8ObjectWrapper;
 
 public abstract class BaseServlet extends HttpServlet {
@@ -25,7 +25,17 @@ public abstract class BaseServlet extends HttpServlet {
         
         // Inizializza la configurazione di FreeMarker
         freemarkerConfig = new Configuration(Configuration.VERSION_2_3_32);
-        freemarkerConfig.setServletContextForTemplateLoading(getServletContext(), "/WEB-INF/templates");
+        String templatePath = getServletContext().getRealPath("/WEB-INF/templates");
+        try {
+            if (templatePath != null) {
+                freemarkerConfig.setDirectoryForTemplateLoading(new java.io.File(templatePath));
+            } else {
+                // Fallback se il server non esplode il WAR (molto raro su Tomcat)
+                freemarkerConfig.setClassForTemplateLoading(getClass(), "/WEB-INF/templates");
+            }
+        } catch (java.io.IOException e) {
+            throw new ServletException("Impossibile configurare FreeMarker per il caricamento dei template", e);
+        }
         freemarkerConfig.setDefaultEncoding("UTF-8");
         freemarkerConfig.setTemplateExceptionHandler(TemplateExceptionHandler.HTML_DEBUG_HANDLER);
 

@@ -7,11 +7,16 @@
     { start: "19:00", end: "23:00" }
   ];
 
-  // tempo di percorrenza stimato in base alla distanza, al momento è un valore mock
+  // tempo di percorrenza stimato in base alla distanza, al momento è un valore hard-coded
+  // se in futuro verrà implementata questa feature ci sarà già la variabile
   const TEMPO_PERCORRENZA_MIN = 10;
 
   const fmt = (n) => "€" + n.toFixed(2).replace(".", ",");
-  const fmtTime = (d) => d.toLocaleString("it-IT", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  const fmtTime = (d) => {
+    const ore = String(d.getHours()).padStart(2, '0');
+    const minuti = String(d.getMinutes()).padStart(2, '0');
+    return `${ore}:${minuti}`;
+  };
 
   function loadCart() {
     try { return JSON.parse(localStorage.getItem("wd_cart")) || []; }
@@ -100,29 +105,31 @@
   const form = document.getElementById("deliveryForm");
   const orarioError = document.getElementById("orarioError");
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+form.addEventListener("submit", (e) => {
     orarioError.textContent = "";
 
-    if (!orarioInput.value) {
-      orarioError.textContent = "Seleziona un orario di consegna.";
-      return;
+    if (!orarioInput.value && slot) {
+        orarioInput.value = toInputValue(slot.min);
+    } else if (!orarioInput.value && !slot) {
+        e.preventDefault();
+        orarioError.textContent = "Nessun orario di consegna disponibile.";
+        return;
     }
+
     const scelto = new Date(orarioInput.value);
     if (slot && (scelto < slot.min || scelto > slot.max)) {
+      e.preventDefault();
       orarioError.textContent = "L'orario scelto è fuori dalla fascia disponibile.";
       return;
     }
 
-    // da modificare con le servlet reali
-    const ordineId = "WD-" + Math.floor(100000 + Math.random() * 900000);
+    // Creiamo un input nascosto che contiene il JSON del carrello
+    // per mandarlo a CheckoutServlet (che leggerà "cart_data")
+    const cartInput = document.createElement("input");
+    cartInput.type = "hidden";
+    cartInput.name = "cart_data";
+    cartInput.value = JSON.stringify(cart);
+    form.appendChild(cartInput);
 
-    document.getElementById("checkoutLayout").hidden = true;
-    document.getElementById("confirmState").hidden = false;
-    document.getElementById("confirmId").textContent = ordineId;
-    document.getElementById("confirmTime").textContent = fmtTime(scelto);
-    document.getElementById("confirmPrice").textContent = fmt(totale);
-
-    localStorage.removeItem("wd_cart");
   });
 })();

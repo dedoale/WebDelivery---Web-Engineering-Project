@@ -2,29 +2,29 @@ USE webdelivery;
 
 -- UTENTI
 INSERT INTO Utente (id, ruolo, email, password_hash, nome, telefono, indirizzo) VALUES
-(1, 'Proprietario', 'admin@univaqfooddelivery.it', 'hash_password', 'Amministratore', '0862000000', 'Via Vetoio, L''Aquila'),
-(2, 'Personale', 'luca@univaqfooddelivery.it', 'hash_password', 'Luca B.', NULL, NULL),
-(3, 'Personale', 'sara@univaqfooddelivery.it', 'hash_password', 'Sara M.', NULL, NULL),
-(4, 'Personale', 'marco@univaqfooddelivery.it', 'hash_password', 'Marco T.', NULL, NULL),
-(5, 'Cliente', 'mario.rossi@email.it', 'hash_password', 'Mario Rossi', '3331234567', 'Via Roma 1, L''Aquila'),
-(6, 'Cliente', 'giulia.bianchi@email.it', 'hash_password', 'Giulia Bianchi', '3332222222', 'Via Milano 2, L''Aquila'),
-(7, 'Cliente', 'andrea.verdi@email.it', 'hash_password', 'Andrea Verdi', '3333333333', 'Via Torino 3, L''Aquila'),
-(8, 'Cliente', 'elena.conti@email.it', 'hash_password', 'Elena Conti', '3334444444', 'Via Napoli 4, L''Aquila');
+(1, 'Proprietario', 'admin@email.it', '76eb8e15cc50e8b483b4ccd3411a3af9:5f66fbaeaa8ab6bde3de0841850483854781ba386f572fc734dcf8a258b43fca', 'Amministratore', '0862000000', 'Via Vetoio, L''Aquila'),
+(2, 'Personale', 'luca@personale.it', '76eb8e15cc50e8b483b4ccd3411a3af9:5f66fbaeaa8ab6bde3de0841850483854781ba386f572fc734dcf8a258b43fca', 'Luca B.', NULL, NULL),
+(3, 'Personale', 'sara@personale.it', '76eb8e15cc50e8b483b4ccd3411a3af9:5f66fbaeaa8ab6bde3de0841850483854781ba386f572fc734dcf8a258b43fca', 'Sara M.', NULL, NULL),
+(4, 'Personale', 'marco@personale.it', '76eb8e15cc50e8b483b4ccd3411a3af9:5f66fbaeaa8ab6bde3de0841850483854781ba386f572fc734dcf8a258b43fca', 'Marco T.', NULL, NULL),
+(5, 'Cliente', 'mario.rossi@email.it', '76eb8e15cc50e8b483b4ccd3411a3af9:5f66fbaeaa8ab6bde3de0841850483854781ba386f572fc734dcf8a258b43fca', 'Mario Rossi', '3331234567', 'Via Roma 1, L''Aquila'),
+(6, 'Cliente', 'giulia.bianchi@email.it', '76eb8e15cc50e8b483b4ccd3411a3af9:5f66fbaeaa8ab6bde3de0841850483854781ba386f572fc734dcf8a258b43fca', 'Giulia Bianchi', '3332222222', 'Via Milano 2, L''Aquila'),
+(7, 'Cliente', 'andrea.verdi@email.it', '76eb8e15cc50e8b483b4ccd3411a3af9:5f66fbaeaa8ab6bde3de0841850483854781ba386f572fc734dcf8a258b43fca', 'Andrea Verdi', '3333333333', 'Via Torino 3, L''Aquila'),
+(8, 'Cliente', 'elena.conti@email.it', '76eb8e15cc50e8b483b4ccd3411a3af9:5f66fbaeaa8ab6bde3de0841850483854781ba386f572fc734dcf8a258b43fca', 'Elena Conti', '3334444444', 'Via Napoli 4, L''Aquila');
 
 
 -- PRODOTTI
-INSERT INTO Prodotto (id, nome, descrizione, prezzo_base, immagine, tempo_preparazione, procedura) VALUES
-(1, 'Bruschette miste', 'Pane casereccio tostato, pomodoro fresco, olio extravergine e basilico.', 5.50, 'bruschette.jpg', 8, 'Tostare il pane, strofinare con aglio, condire con pomodoro a cubetti, olio e basilico.'),
-(2, 'Tagliatelle al ragù', 'Pasta fresca all''uovo con ragù di carne cotto lentamente per 4 ore.', 9.00, 'tagliatelle.jpg', 15, 'Cuocere la pasta 3 minuti in acqua salata, mantecare con il ragù caldo, spolverare di parmigiano.'),
-(3, 'Pizza Margherita', 'Pomodoro San Marzano, fiordilatte, basilico fresco, cotta nel forno a legna.', 7.00, 'pizza-margherita.jpg', 12, 'Stendere l''impasto, condire con pomodoro e mozzarella, cuocere nel forno a legna a 400°C per 90 secondi, guarnire con basilico.'),
-(4, 'Pizza Diavola', 'Pomodoro, fiordilatte, salame piccante, olio al peperoncino.', 8.00, 'pizza-diavola.jpg', 12, 'Stendere l''impasto, condire con pomodoro, mozzarella e salame, cuocere nel forno a legna, rifinire con olio piccante in uscita.'),
-(5, 'Tiramisù della casa', 'Ricetta originale con savoiardi, mascarpone e caffè della torrefazione locale.', 4.50, 'tiramisu.jpg', 3, 'Porzionare dalla vaschetta preparata in mattinata, spolverare di cacao al momento del servizio.'),
-(6, 'Caffè', 'Espresso della nostra torrefazione di fiducia.', 1.00, 'caffe.jpg', 2, 'Estrazione singola da macinato fresco, 25 secondi circa.');
+INSERT INTO Prodotto (id, nome, descrizione, prezzo_base, categoria, immagine, tempo_preparazione, procedura) VALUES
+(1, 'Bruschette miste', 'Quattro semplici e gustose bruschette al pomodoro, con un goccio di olio EVO e foglie di basilico fresco.', 5.50, 'Antipasti', 'bruschette.jpg', 8, 'Tostare il pane, strofinare con aglio, condire con pomodoro a cubetti, olio e basilico.'),
+(2, 'Tagliatelle al ragù', 'Pasta fresca all''uovo con ragù di carne cotto lentamente per 4 ore.', 9.00, 'Primi', 'tagliatelle.jpg', 15, 'Cuocere la pasta 3 minuti in acqua salata, mantecare con il ragù caldo, spolverare di parmigiano.'),
+(3, 'Pizza Margherita', 'La tipica pizza napoletana cotta nel forno a legna.', 7.00, 'Pizze', 'pizza-margherita.jpg', 12, 'Stendere l''impasto, condire con pomodoro e mozzarella, cuocere nel forno a legna a 400°C per 90 secondi, guarnire con basilico.'),
+(4, 'Pizza Diavola', 'L''iconica pizza piccante dal sapore deciso.', 8.00, 'Pizze', 'pizza-diavola.jpg', 12, 'Stendere l''impasto, condire con pomodoro, mozzarella e salame, cuocere nel forno a legna, rifinire con olio piccante in uscita.'),
+(5, 'Tiramisù della casa', 'Dolce con savoiardi, mascarpone e caffè fatto da noi.', 4.50, 'Dolci', 'tiramisu.jpg', 3, 'Porzionare dalla vaschetta preparata in mattinata, spolverare di cacao al momento del servizio.'),
+(6, 'Caffè', 'Espresso della nostra torrefazione di fiducia.', 1.00, 'Bevande', 'caffe.jpg', 2, 'Estrazione singola da macinato fresco, 25 secondi circa.');
 
 
 -- INGREDIENTI E COMPOSIZIONI
 INSERT INTO Ingrediente (id, nome) VALUES
-(1, 'Pane casereccio'), (2, 'Pomodoro'), (3, 'Basilico fresco'), (4, 'Olio extravergine'),
+(1, 'Pane casereccio'), (2, 'Pomodoro'), (3, 'Basilico'), (4, 'Olio extravergine'),
 (5, 'Tagliatelle fresche'), (6, 'Ragù di carne'), (7, 'Parmigiano'), (8, 'Impasto pizza'),
 (9, 'Pomodoro San Marzano'), (10, 'Fiordilatte'), (11, 'Salame piccante'), (12, 'Olio al peperoncino'),
 (13, 'Savoiardi'), (14, 'Crema al mascarpone'), (15, 'Caffè espresso'), (16, 'Cacao amaro'), (17, 'Miscela espresso');
