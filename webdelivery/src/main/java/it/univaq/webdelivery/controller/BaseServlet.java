@@ -59,7 +59,7 @@ public abstract class BaseServlet extends HttpServlet {
 
                 // Fallback di cortesia per facilitare i test dell'utente
                 if (url == null) {
-                    url = "jdbc:mysql://localhost:3306/webdelivery?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+                    url = "jdbc:mysql://localhost:3306/webdelivery?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Rome";
                 }
                 if (user == null) {
                     user = "root";

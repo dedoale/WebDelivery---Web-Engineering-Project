@@ -1,7 +1,9 @@
 package it.univaq.webdelivery.controller;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -9,30 +11,28 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.UUID;
-import java.io.File;
-import java.nio.file.Paths;
-import jakarta.servlet.annotation.MultipartConfig;
-import jakarta.servlet.http.Part;
-import it.univaq.webdelivery.data.model.Caratteristica;
-import it.univaq.webdelivery.data.model.GruppoCaratteristica;
+import java.util.stream.Collectors;
 
 import it.univaq.webdelivery.data.dao.OrdineDAO;
 import it.univaq.webdelivery.data.dao.ProdottoDAO;
 import it.univaq.webdelivery.data.dao.UtenteDAO;
+import it.univaq.webdelivery.data.model.Caratteristica;
+import it.univaq.webdelivery.data.model.GruppoCaratteristica;
 import it.univaq.webdelivery.data.model.Ordine;
 import it.univaq.webdelivery.data.model.Prodotto;
 import it.univaq.webdelivery.data.model.RigaOrdine;
 import it.univaq.webdelivery.data.model.Utente;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 
 @WebServlet(name = "ProprietarioServlet", urlPatterns = {
     "/proprietario", 
@@ -72,7 +72,7 @@ public class ProprietarioServlet extends BaseServlet {
         List<Ordine> ordini = ordineDAO.getAll();
 
         String statDateParam = request.getParameter("statDate");
-        LocalDate targetDate = LocalDate.of(2026, 7, 14); // Default mock date
+        LocalDate targetDate = LocalDate.now(); // data odierna
         if (statDateParam != null && !statDateParam.isEmpty()) {
             try {
                 targetDate = LocalDate.parse(statDateParam);

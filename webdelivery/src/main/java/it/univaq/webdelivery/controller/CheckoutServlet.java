@@ -100,13 +100,30 @@ public class CheckoutServlet extends BaseServlet {
         // Aggiungiamo 10 minuti di percorrenza stimata, come definito in checkout.js
         int tempoConsegnaStimato = tempoPreparazioneTotale + 10;
 
+        // validazione orario lato server con parsing
+        LocalDateTime orarioRichiestoParsed;
+        try {
+            orarioRichiestoParsed = LocalDateTime.parse(orario);
+        } catch (Exception e) {
+            dataModel.put("error", "Formato orario non valido.");
+            renderTemplate("checkout.ftl", dataModel, request, response);
+            return;
+        }
+
+        // Validazione lato server con 5 minuti di tolleranza per confermare l'ordine 
+        if (!it.univaq.webdelivery.util.OrarioConsegna.isOrarioValido(orarioRichiestoParsed, Math.max(0, tempoConsegnaStimato - 5))) {
+            dataModel.put("error", "L'orario di consegna richiesto non è più valido o è fuori dalla fascia oraria. Ricarica la pagina e riprova.");
+            renderTemplate("checkout.ftl", dataModel, request, response);
+            return;
+        }
+
         // Crea l'oggetto Ordine
         Ordine ordine = new Ordine();
         ordine.setIdCliente(utente.getId());
         ordine.setCliente(utente.getNome());
         ordine.setPrezzoTotale(totaleOrdine);
         ordine.setTempoConsegnaStimato(tempoConsegnaStimato);
-        ordine.setOrarioRichiesto(LocalDateTime.parse(orario));
+        ordine.setOrarioRichiesto(orarioRichiestoParsed);
         ordine.setStatoAttuale("Inserito");
         ordine.setRighe(righe);
 
@@ -155,7 +172,7 @@ public class CheckoutServlet extends BaseServlet {
 
             String opzioniListStr = extractString(item, "\"opzioniScelte\"\\s*:\\s*\\[(.*?)\\]");
             if (opzioniListStr != null && !opzioniListStr.trim().isEmpty()) {
-                Pattern optPattern = Pattern.compile("\\{\\s*\"id\"\\s*:\\s*(\\d+).*?\"differenza_prezzo\"\\s*:\\s*([\\d.-]+)");
+                Pattern optPattern = Pattern.compile("\\{\\s*\"id\"\\s*:\\s*\"?(\\d+)\"?.*?\"differenza_prezzo\"\\s*:\\s*([\\d.-]+)");
                 Matcher optMatcher = optPattern.matcher(opzioniListStr);
                 while (optMatcher.find()) {
                     int optId = Integer.parseInt(optMatcher.group(1));
