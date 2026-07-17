@@ -59,6 +59,7 @@ Nessuna libreria esterna: tutto il codice JavaScript (`src/main/webapp/js/*.js`)
 - Calcolo in tempo reale, durante la composizione del carrello, del prezzo totale e del tempo stimato di consegna (tempo di preparazione dei prodotti + tempo di percorrenza stimato).
 - Checkout con scelta dell'orario di consegna, vincolato alle fasce di apertura e a non essere antecedente al tempo minimo di preparazione/consegna. Il vincolo è verificato **sia lato client** (per l'usabilità: mostra solo gli slot disponibili) **sia lato server** (per la sicurezza: un client modificato non può forzare un orario non valido).
 - Ricalcolo lato server di prezzo totale e tempo di preparazione al momento della conferma dell'ordine (il client non viene mai considerato una fonte affidabile per questi valori).
+- Invio email di riepilogo al momento della conferma dell'ordine e notifica quando lo stato dell'ordine passa a "In consegna" (implementato in maniera asincrona tramite `Jakarta Mail`).
 - Storico ordini del cliente, con distinzione tra ordini "in corso" e "storico", e visualizzazione dello stato di avanzamento di ciascun ordine.
 
 **Area personale**
@@ -80,7 +81,6 @@ Nessuna libreria esterna: tutto il codice JavaScript (`src/main/webapp/js/*.js`)
 
 ### Non realizzate / parzialmente realizzate
 
-- **Invio email** di riepilogo ordine e di notifica "in consegna" — *opzionale nella specifica*. Non ancora implementato; la specifica suggerisce l'uso di un server SMTP di test locale (es. FakeSMTP).
 - **Verifica dell'indirizzo email in fase di registrazione** (link di conferma) — *opzionale nella specifica*. Non implementata.
 - **Paginazione del menu** — *opzionale nella specifica* ("magari paginato"). Il menu è attualmente organizzato per categoria ma non paginato; con il catalogo attuale (poche decine di prodotti) non è un problema di usabilità, ma andrebbe aggiunta se il catalogo crescesse.
 - **Stima del tempo di consegna basata sulla distanza reale** dall'indirizzo del cliente — *opzionale nella specifica*. Attualmente si usa un tempo di percorrenza fisso (10 minuti); il codice client (`checkout.js`) è già isolato in una costante dedicata proprio in previsione di questa estensione futura.

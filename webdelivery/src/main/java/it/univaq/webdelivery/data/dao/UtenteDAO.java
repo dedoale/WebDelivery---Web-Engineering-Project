@@ -107,6 +107,22 @@ public class UtenteDAO {
         return false;
     }
 
+    public Utente getById(int id) {
+        String sql = "SELECT * FROM Utente WHERE id = ?";
+        try (Connection conn = DbConnectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapUtente(rs);
+                }
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(UtenteDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
+        }
+        return null;
+    }
+
     private Utente mapUtente(ResultSet rs) throws SQLException {
         return new Utente(
             rs.getInt("id"),

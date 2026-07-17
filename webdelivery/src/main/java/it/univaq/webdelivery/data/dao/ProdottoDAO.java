@@ -70,6 +70,8 @@ public class ProdottoDAO {
                         p.setId(rs.getInt(1));
                     }
                 }
+                saveIngredienti(conn, p);
+                saveGruppi(conn, p);
                 return true;
             }
         } catch (SQLException e) {
@@ -91,7 +93,12 @@ public class ProdottoDAO {
             ps.setString(7, p.getCategoria());
             ps.setInt(8, p.getId());
 
-            return ps.executeUpdate() > 0;
+            boolean updated = ps.executeUpdate() > 0;
+            if (updated) {
+                updateIngredienti(conn, p);
+                updateGruppi(conn, p);
+            }
+            return updated;
         } catch (SQLException e) {
             Logger.getLogger(ProdottoDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
         }
@@ -201,6 +208,140 @@ public class ProdottoDAO {
             }
         }
         return list;
+    }
+
+    private void saveIngredienti(Connection conn, Prodotto p) throws SQLException {
+        if (p.getIngredienti() == null || p.getIngredienti().isEmpty()) return;
+        
+        String findIngrediente = "SELECT id FROM Ingrediente WHERE LOWER(nome) = LOWER(?)";
+        String insertIngrediente = "INSERT INTO Ingrediente (nome) VALUES (?)";
+        String insertComposizione = "INSERT INTO Composizione_Ingrediente (id_prodotto, id_ingrediente, quantita) VALUES (?, ?, ?)";
+        
+        for (Prodotto.IngredienteConQuantita i : p.getIngredienti()) {
+            int idIngrediente = -1;
+            try (PreparedStatement psFind = conn.prepareStatement(findIngrediente)) {
+                psFind.setString(1, i.getNome());
+                try (ResultSet rs = psFind.executeQuery()) {
+                    if (rs.next()) {
+                        idIngrediente = rs.getInt("id");
+                    }
+                }
+            }
+            if (idIngrediente == -1) {
+                try (PreparedStatement psIns = conn.prepareStatement(insertIngrediente, Statement.RETURN_GENERATED_KEYS)) {
+                    psIns.setString(1, i.getNome());
+                    psIns.executeUpdate();
+                    try (ResultSet rs = psIns.getGeneratedKeys()) {
+                        if (rs.next()) idIngrediente = rs.getInt(1);
+                    }
+                }
+            }
+            if (idIngrediente != -1) {
+                try (PreparedStatement psComp = conn.prepareStatement(insertComposizione)) {
+                    psComp.setInt(1, p.getId());
+                    psComp.setInt(2, idIngrediente);
+                    psComp.setString(3, i.getQuantita());
+                    psComp.executeUpdate();
+                }
+            }
+        }
+    }
+
+    private void updateIngredienti(Connection conn, Prodotto p) throws SQLException {
+        // Eliminiamo le vecchie associazioni (safe perché non ci sono FK dipendenti da Composizione_Ingrediente)
+        String deleteSql = "DELETE FROM Composizione_Ingrediente WHERE id_prodotto = ?";
+        try (PreparedStatement ps = conn.prepareStatement(deleteSql)) {
+            ps.setInt(1, p.getId());
+            ps.executeUpdate();
+        }
+        // Inseriamo quelle nuove
+        saveIngredienti(conn, p);
+    }
+
+    private void saveGruppi(Connection conn, Prodotto p) throws SQLException {
+        if (p.getGruppi() == null) return;
+        String insertGruppo = "INSERT INTO Gruppo_Caratteristica (id_prodotto, nome, mutua_esclusione) VALUES (?, ?, ?)";
+        String insertCaratteristica = "INSERT INTO Caratteristica (id_gruppo, nome, differenza_prezzo, is_default) VALUES (?, ?, ?, ?)";
+
+        for (GruppoCaratteristica g : p.getGruppi()) {
+            int idGruppo = -1;
+            try (PreparedStatement psG = conn.prepareStatement(insertGruppo, Statement.RETURN_GENERATED_KEYS)) {
+                psG.setInt(1, p.getId());
+                psG.setString(2, g.getNome());
+                psG.setBoolean(3, g.isMutuaEsclusione());
+                psG.executeUpdate();
+                try (ResultSet rs = psG.getGeneratedKeys()) {
+                    if (rs.next()) idGruppo = rs.getInt(1);
+                }
+            }
+            if (idGruppo != -1 && g.getOpzioni() != null) {
+                for (Caratteristica c : g.getOpzioni()) {
+                    try (PreparedStatement psC = conn.prepareStatement(insertCaratteristica)) {
+                        psC.setInt(1, idGruppo);
+                        psC.setString(2, c.getNome());
+                        psC.setDouble(3, c.getDifferenzaPrezzo());
+                        psC.setBoolean(4, c.isDefault());
+                        psC.executeUpdate();
+                    }
+                }
+            }
+        }
+    }
+
+    private void updateGruppi(Connection conn, Prodotto p) throws SQLException {
+        if (p.getGruppi() == null) return;
+        
+        String updateGruppo = "UPDATE Gruppo_Caratteristica SET nome = ?, mutua_esclusione = ? WHERE id = ?";
+        String updateCaratteristica = "UPDATE Caratteristica SET nome = ?, differenza_prezzo = ?, is_default = ? WHERE id = ?";
+        
+        // I nuovi inserimenti per aggiornamenti usano logiche simili a save
+        String insertGruppo = "INSERT INTO Gruppo_Caratteristica (id_prodotto, nome, mutua_esclusione) VALUES (?, ?, ?)";
+        String insertCaratteristica = "INSERT INTO Caratteristica (id_gruppo, nome, differenza_prezzo, is_default) VALUES (?, ?, ?, ?)";
+        
+        // Per semplicità non facciamo hard delete per evitare conflitti con gli ordini esistenti, facciamo solo update/insert.
+        for (GruppoCaratteristica g : p.getGruppi()) {
+            int idGruppo = g.getId();
+            if (idGruppo > 0) {
+                try (PreparedStatement ps = conn.prepareStatement(updateGruppo)) {
+                    ps.setString(1, g.getNome());
+                    ps.setBoolean(2, g.isMutuaEsclusione());
+                    ps.setInt(3, idGruppo);
+                    ps.executeUpdate();
+                }
+            } else {
+                try (PreparedStatement ps = conn.prepareStatement(insertGruppo, Statement.RETURN_GENERATED_KEYS)) {
+                    ps.setInt(1, p.getId());
+                    ps.setString(2, g.getNome());
+                    ps.setBoolean(3, g.isMutuaEsclusione());
+                    ps.executeUpdate();
+                    try (ResultSet rs = ps.getGeneratedKeys()) {
+                        if (rs.next()) idGruppo = rs.getInt(1);
+                    }
+                }
+            }
+            
+            if (idGruppo != -1 && g.getOpzioni() != null) {
+                for (Caratteristica c : g.getOpzioni()) {
+                    if (c.getId() > 0) {
+                        try (PreparedStatement ps = conn.prepareStatement(updateCaratteristica)) {
+                            ps.setString(1, c.getNome());
+                            ps.setDouble(2, c.getDifferenzaPrezzo());
+                            ps.setBoolean(3, c.isDefault());
+                            ps.setInt(4, c.getId());
+                            ps.executeUpdate();
+                        }
+                    } else {
+                        try (PreparedStatement ps = conn.prepareStatement(insertCaratteristica)) {
+                            ps.setInt(1, idGruppo);
+                            ps.setString(2, c.getNome());
+                            ps.setDouble(3, c.getDifferenzaPrezzo());
+                            ps.setBoolean(4, c.isDefault());
+                            ps.executeUpdate();
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private Prodotto mapProdotto(ResultSet rs) throws SQLException {

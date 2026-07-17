@@ -4,6 +4,7 @@ import it.univaq.webdelivery.data.dao.OrdineDAO;
 import it.univaq.webdelivery.data.dao.ProdottoDAO;
 import it.univaq.webdelivery.data.model.Ordine;
 import it.univaq.webdelivery.data.model.Utente;
+import it.univaq.webdelivery.data.dao.UtenteDAO;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -18,12 +19,14 @@ import java.util.Map;
 public class StaffServlet extends BaseServlet {
     private OrdineDAO ordineDAO;
     private ProdottoDAO prodottoDAO;
+    private UtenteDAO utenteDAO;
 
     @Override
     public void init() throws ServletException {
         super.init();
         this.ordineDAO = new OrdineDAO();
         this.prodottoDAO = new ProdottoDAO();
+        this.utenteDAO = new UtenteDAO();
     }
 
     @Override
@@ -62,7 +65,17 @@ public class StaffServlet extends BaseServlet {
                 // esegue l'aggiornamento e controlla se è andato a buon fine
                 boolean successo = ordineDAO.updateStato(idOrdine, nuovoStato, utente.getId());
                 
-                if (!successo) {
+                if (successo) {
+                    if ("In consegna".equals(nuovoStato)) {
+                        Ordine ordine = ordineDAO.getById(idOrdine);
+                        if (ordine != null) {
+                            Utente cliente = utenteDAO.getById(ordine.getIdCliente());
+                            if (cliente != null) {
+                                it.univaq.webdelivery.util.EmailUtil.sendOrderInDelivery(cliente, ordine);
+                            }
+                        }
+                    }
+                } else {
                     System.out.println("Aggiornamento dello stato fallito per l'ordine #" + idOrdine);
                 }
             }

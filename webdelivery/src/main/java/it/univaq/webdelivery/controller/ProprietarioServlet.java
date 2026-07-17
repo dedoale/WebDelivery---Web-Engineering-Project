@@ -12,6 +12,15 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.UUID;
+import java.io.File;
+import java.nio.file.Paths;
+import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.http.Part;
+import it.univaq.webdelivery.data.model.Caratteristica;
+import it.univaq.webdelivery.data.model.GruppoCaratteristica;
 
 import it.univaq.webdelivery.data.dao.OrdineDAO;
 import it.univaq.webdelivery.data.dao.ProdottoDAO;
@@ -34,6 +43,11 @@ import jakarta.servlet.http.HttpServletResponse;
     "/proprietario/menu/modifica",
     "/proprietario/menu/ripristina"
 })
+@MultipartConfig(
+    fileSizeThreshold = 1024 * 1024 * 1, // 1 MB
+    maxFileSize = 1024 * 1024 * 10,      // 10 MB
+    maxRequestSize = 1024 * 1024 * 100   // 100 MB
+)
 public class ProprietarioServlet extends BaseServlet {
     private OrdineDAO ordineDAO;
     private UtenteDAO utenteDAO;
@@ -177,43 +191,126 @@ public class ProprietarioServlet extends BaseServlet {
             }
         } else if ("/proprietario/menu/aggiungi".equals(path)) {
             Prodotto p = new Prodotto();
-            p.setNome(request.getParameter("nome"));
-            p.setPrezzoBase(Double.parseDouble(request.getParameter("prezzo_base")));
-            p.setTempoPreparazione(Integer.parseInt(request.getParameter("tempo_preparazione")));
-            p.setDescrizione(request.getParameter("descrizione"));
-            
-            // se l'admin lascia la categoria vuoto mette "Altro" di default
-            String cat = request.getParameter("categoria");
-            if (cat == null || cat.trim().isEmpty()) {
-                p.setCategoria("Altro");
-            } else {
-                p.setCategoria(cat.trim());
-            }
-            
+            populateProdottoFromRequest(request, p);
             prodottoDAO.create(p);
         } else if ("/proprietario/menu/modifica".equals(path)) {
             String idStr = request.getParameter("prodotto_id");
             if (idStr != null) {
                 Prodotto p = prodottoDAO.getById(Integer.parseInt(idStr));
                 if (p != null) {
-                    p.setNome(request.getParameter("nome"));
-                    p.setPrezzoBase(Double.parseDouble(request.getParameter("prezzo_base")));
-                    p.setTempoPreparazione(Integer.parseInt(request.getParameter("tempo_preparazione")));
-                    p.setDescrizione(request.getParameter("descrizione"));
-                    
-                    // se l'admin lascia la categoria vuoto mette "Altro" di default
-                    String cat = request.getParameter("categoria");
-                    if (cat == null || cat.trim().isEmpty()) {
-                        p.setCategoria("Altro");
-                    } else {
-                        p.setCategoria(cat.trim());
-                    }
-                    
+                    populateProdottoFromRequest(request, p);
                     prodottoDAO.update(p);
                 }
             }
         }
 
         response.sendRedirect(request.getContextPath() + "/proprietario");
+    }
+
+    private void populateProdottoFromRequest(HttpServletRequest request, Prodotto p) throws IOException, ServletException {
+        p.setNome(request.getParameter("nome"));
+        p.setPrezzoBase(Double.parseDouble(request.getParameter("prezzo_base")));
+        p.setTempoPreparazione(Integer.parseInt(request.getParameter("tempo_preparazione")));
+        p.setDescrizione(request.getParameter("descrizione"));
+        p.setProcedura(request.getParameter("procedura"));
+        
+        String cat = request.getParameter("categoria");
+        if (cat == null || cat.trim().isEmpty()) {
+            p.setCategoria("Altro");
+        } else {
+            p.setCategoria(cat.trim());
+        }
+
+        Part filePart = request.getPart("immagine");
+        if (filePart != null && filePart.getSize() > 0) {
+            String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
+            String extension = "";
+            int i = fileName.lastIndexOf('.');
+            if (i > 0) {
+                extension = fileName.substring(i);
+            }
+            String uniqueName = UUID.randomUUID().toString() + extension;
+            String uploadPath = getServletContext().getRealPath("") + File.separator + "img";
+            File uploadDir = new File(uploadPath);
+            if (!uploadDir.exists()) uploadDir.mkdir();
+            filePart.write(uploadPath + File.separator + uniqueName);
+            p.setImmagine(uniqueName);
+        }
+
+        String ingrJson = request.getParameter("ingredienti_json");
+        if (ingrJson != null && !ingrJson.trim().isEmpty()) {
+            p.setIngredienti(parseIngredienti(ingrJson));
+        }
+
+        String carattJson = request.getParameter("caratteristiche_json");
+        if (carattJson != null && !carattJson.trim().isEmpty()) {
+            p.setGruppi(parseCaratteristiche(carattJson));
+        }
+    }
+
+    private List<Prodotto.IngredienteConQuantita> parseIngredienti(String json) {
+        List<Prodotto.IngredienteConQuantita> list = new ArrayList<>();
+        Pattern p = Pattern.compile("\\{\\s*\"nome\"\\s*:\\s*\"(.*?)\"\\s*,\\s*\"quantita\"\\s*:\\s*\"(.*?)\"\\s*\\}");
+        Matcher m = p.matcher(json);
+        while (m.find()) {
+            list.add(new Prodotto.IngredienteConQuantita(m.group(1), m.group(2)));
+        }
+        return list;
+    }
+
+    private List<GruppoCaratteristica> parseCaratteristiche(String json) {
+        List<GruppoCaratteristica> list = new ArrayList<>();
+        List<String> groups = splitJsonArray(json);
+        for(String grpStr : groups) {
+            GruppoCaratteristica g = new GruppoCaratteristica();
+            g.setNome(extractString(grpStr, "\"nome\"\\s*:\\s*\"(.*?)\""));
+            g.setMutuaEsclusione(grpStr.contains("\"mutua_esclusione\":true") || grpStr.contains("\"mutua_esclusione\" : true"));
+            
+            String opzioniStr = extractString(grpStr, "\"opzioni\"\\s*:\\s*\\[(.*)\\]");
+            if (opzioniStr != null && !opzioniStr.trim().isEmpty()) {
+                List<String> opzioni = splitJsonArray("[" + opzioniStr + "]");
+                List<Caratteristica> opts = new ArrayList<>();
+                for(String optStr : opzioni) {
+                    Caratteristica c = new Caratteristica();
+                    c.setNome(extractString(optStr, "\"nome\"\\s*:\\s*\"(.*?)\""));
+                    String diffPrezzoStr = extractString(optStr, "\"diff_prezzo\"\\s*:\\s*([\\d.-]+)");
+                    if (diffPrezzoStr != null) {
+                        c.setDifferenzaPrezzo(Double.parseDouble(diffPrezzoStr));
+                    }
+                    c.setDefault(optStr.contains("\"is_default\":true") || optStr.contains("\"is_default\" : true"));
+                    opts.add(c);
+                }
+                g.setOpzioni(opts);
+            }
+            list.add(g);
+        }
+        return list;
+    }
+
+    private List<String> splitJsonArray(String json) {
+        List<String> list = new ArrayList<>();
+        int depth = 0;
+        StringBuilder sb = new StringBuilder();
+        for (char c : json.toCharArray()) {
+            if (c == '{') depth++;
+            if (depth > 0) sb.append(c);
+            if (c == '}') {
+                depth--;
+                if (depth == 0) {
+                    list.add(sb.toString());
+                    sb.setLength(0);
+                }
+            }
+        }
+        return list;
+    }
+
+    private String extractString(String json, String patternStr) {
+        Pattern p = Pattern.compile(patternStr);
+        Matcher m = p.matcher(json);
+        if (m.find()) {
+            return m.group(1);
+        }
+        return null;
     }
 }

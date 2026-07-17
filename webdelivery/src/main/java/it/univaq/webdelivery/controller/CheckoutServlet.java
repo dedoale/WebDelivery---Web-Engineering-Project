@@ -114,6 +114,9 @@ public class CheckoutServlet extends BaseServlet {
         if (ordineDAO.create(ordine)) {
             dataModel.put("ordineConfermato", true);
             dataModel.put("confermatoOrdine", ordine);
+            
+            // INVIA EMAIL DI CONFERMA
+            it.univaq.webdelivery.util.EmailUtil.sendOrderConfirmation(utente, ordine);
         } else {
             dataModel.put("error", "Si è verificato un errore durante il salvataggio dell'ordine. Riprova.");
         }
