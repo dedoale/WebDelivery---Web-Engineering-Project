@@ -11,35 +11,12 @@ public class Prodotto {
     private String immagine;
     private int tempo_preparazione; // matches tempo_preparazione in JSON
     private String procedura;
+    private boolean is_active = true;
     
     // Per semplicità di JSON mapping per il client, inseriamo direttamente le relazioni
     private List<IngredienteConQuantita> ingredienti = new ArrayList<>();
     private List<GruppoCaratteristica> gruppi = new ArrayList<>();
 
-    // La categoria del prodotto (può essere ricavata o passata per raggruppamento se necessario,
-    // sebbene nella tabella SQL non ci sia un campo categoria esplicito! 
-    // Aspetta, controlliamo la tabella Prodotto nel file SQL:
-    // CREATE TABLE Prodotto (
-    //     id INT AUTO_INCREMENT PRIMARY KEY,
-    //     nome VARCHAR(100) NOT NULL,
-    //     descrizione TEXT NOT NULL,
-    //     prezzo_base DECIMAL(6,2) NOT NULL,
-    //     immagine VARCHAR(255),
-    //     tempo_preparazione INT NOT NULL,
-    //     procedura TEXT
-    // );
-    // Nessun campo "categoria" nella tabella Prodotto! 
-    // Ma nel file data.js abbiamo `categoria: "Antipasti"`, ecc.
-    // Come viene gestita la categoria se non c'è nel database? 
-    // Aspetta, il file 02_insert_data.sql fa questo:
-    // INSERT INTO Prodotto (nome, descrizione, prezzo_base, tempo_preparazione, procedura, immagine) VALUES ...
-    // E non specifica una categoria. Come mai?
-    // Facciamo un controllo rapido: la specifica menziona: "L'attività disporrà di un menu composto da prodotti ognuno dotato almeno di un nome, una descrizione, un prezzo e, opzionalmente, una (o più) immagini. Internamente (cioè in modo non visibile ai clienti), ogni prodotto avrà anche associati un tempo di preparazione, una lista di ingredienti..."
-    // E nelle operazioni: "Gli utenti anonimi potranno visualizzare il menu (magari paginato, suddiviso per tipologia di prodotto... cercate di organizzarlo al meglio)"
-    // Se la categoria non c'è nel database, possiamo aggiungerla come campo facoltativo o String `categoria` nella classe Java. 
-    // Aspetta, se non c'è nella tabella Prodotto, forse l'utente l'ha dimenticata o vuole che la ricaviamo in altro modo, o forse possiamo aggiungerla nella tabella Prodotto. 
-    // Diamo un'occhiata: la tabella Prodotto definita in 01_create_tables.sql NON ha il campo `categoria`. 
-    // Possiamo aggiungere una proprietà `categoria` in `Prodotto.java` per permetterne la serializzazione (anche valorizzandola con un default o un valore ricavato, o modificando la tabella Prodotto per includere `categoria` - che sarebbe l'ideale! Ma non modifichiamo tabelle a meno che non sia necessario, anche se un campo `categoria VARCHAR(50)` è molto utile. Lasciamola in Java come proprietà privata con getter/setter, così Gson la serializza se impostata!)
     private String categoria = "Altro"; 
 
     public static class IngredienteConQuantita {
@@ -160,5 +137,13 @@ public class Prodotto {
 
     public void setCategoria(String categoria) {
         this.categoria = categoria;
+    }
+
+    public boolean isAttivo() {
+        return is_active;
+    }
+
+    public void setAttivo(boolean is_attivo) {
+        this.is_active = is_attivo;
     }
 }

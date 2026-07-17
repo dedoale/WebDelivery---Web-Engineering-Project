@@ -17,21 +17,30 @@
   let currentProduct = null;
   let currentSelection = {};
   let currentQty = 1;
+  let MENU_DATA = { categorie: [], prodotti: [] };
 
   const fmt = (n) => "€" + n.toFixed(2).replace(".", ",");
 
   // render categorie
-  function renderTabs() {
-    const tabs = document.getElementById("categoryTabs");
-    const cats = ["Tutte", ...MENU_DATA.categorie];
-    tabs.innerHTML = cats.map(c =>
-      `<button data-cat="${c}" class="${c === activeCategory ? "active" : ""}">${c}</button>`
-    ).join("");
-    tabs.querySelectorAll("button").forEach(btn => {
+  function initTabs() {
+    const tabs = document.querySelectorAll("#categoryTabs button");
+    const cards = document.querySelectorAll(".product-card");
+
+    tabs.forEach(btn => {
       btn.addEventListener("click", () => {
-        activeCategory = btn.dataset.cat;
-        renderTabs();
-        renderGrid();
+        // aggiorna stile bottone
+        tabs.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        // filtro prodotti nella griglia
+        const selectedCat = btn.dataset.cat;
+        cards.forEach(card => {
+          if (selectedCat === "Tutte" || card.dataset.cat === selectedCat) {
+            card.style.display = ""; // Mostra
+          } else {
+            card.style.display = "none"; // Nascondi
+          }
+        });
       });
     });
   }
@@ -39,25 +48,12 @@
   // render griglia prodotti
   function renderGrid() {
     const grid = document.getElementById("menuGrid");
-    const list = MENU_DATA.prodotti.filter(p =>
-      activeCategory === "Tutte" || p.categoria === activeCategory
-    );
-
-    grid.innerHTML = list.map(p => `
-      <article class="product-card" tabindex="0" data-id="${p.id}" role="button"
-                aria-label="${p.nome}, ${fmt(p.prezzo_base)}">
-        <div class="product-img">${p.immagine ? `<img src="${p.immagine}" alt="${p.nome}">` : "Nessuna immagine"}</div>
-        <h3 class="product-name">${p.nome}</h3>
-        <p class="product-desc">${p.descrizione}</p>
-        <div class="product-foot">
-          <span class="product-price">${fmt(p.prezzo_base)}</span>
-          <span class="product-time">~${p.tempo_preparazione} min</span>
-        </div>
-      </article>
-    `).join("");
-
+    
     grid.querySelectorAll(".product-card").forEach(card => {
-      const open = () => openModal(Number(card.dataset.id));
+      const idProdotto = Number(card.dataset.id); 
+      
+      const open = () => openModal(idProdotto);
+      
       card.addEventListener("click", open);
       card.addEventListener("keydown", (e) => { if (e.key === "Enter") open(); });
     });
@@ -66,6 +62,8 @@
   // modale prodotto
   function openModal(id) {
     currentProduct = MENU_DATA.prodotti.find(p => p.id === id);
+    if (!currentProduct) return;
+
     currentQty = 1;
     currentSelection = {};
 
@@ -74,11 +72,18 @@
       currentSelection[gi] = defaults;
     });
 
-    document.getElementById("modalCategory").textContent = currentProduct.categoria;
     document.getElementById("modalTitle").textContent = currentProduct.nome;
     document.getElementById("modalDesc").textContent = currentProduct.descrizione;
-    document.getElementById("modalImg").innerHTML = currentProduct.immagine
-      ? `<img src="${currentProduct.immagine}" alt="${currentProduct.nome}">` : "";
+    
+    const imgWrap = document.getElementById("modalImg");
+    if (currentProduct.immagine && currentProduct.immagine.trim() !== "") {
+        imgWrap.innerHTML = `<img src="${currentProduct.immagine}" alt="${currentProduct.nome}">`;
+        imgWrap.style.display = "";
+    } else {
+        imgWrap.innerHTML = "";
+        imgWrap.style.display = "none";
+    }
+    
     document.getElementById("qtyValue").textContent = currentQty;
 
     renderGroups();
@@ -237,8 +242,25 @@
     if (e.key === "Escape") { closeModal(); closeCart(); }
   });
 
-  // init
-  renderTabs();
-  renderGrid();
-  renderCart();
+  // init: la griglia e i tab sono già renderizzati server-side da Freemarker,
+  // qui carichiamo solo i dati completi dei prodotti (serve per il modale) via fetch
+  function init() {
+    fetch("api/prodotti")
+      .then(res => res.json())
+      .then(data => {
+        MENU_DATA = data;
+        initTabs();
+        renderGrid();
+        renderCart();
+      })
+      .catch(err => {
+        console.error("Impossibile caricare i dati del menu:", err);
+        // fallback: la griglia server-side resta comunque visibile,
+        // ma il modale di dettaglio/personalizzazione non funzionerà
+        initTabs();
+        renderCart();
+      });
+  }
+
+  init();
 })();

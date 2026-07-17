@@ -7,14 +7,6 @@
   });
   const slug = (s) => s.toLowerCase().replace(/\s+/g, "-");
 
-  // dati mock per il personale
-  // da modificare
-  let STAFF_DATA = [
-    { id: 1, nome: "Luca B.", email: "luca@univaqfooddelivery.it" },
-    { id: 2, nome: "Sara M.", email: "sara@univaqfooddelivery.it" },
-    { id: 3, nome: "Marco T.", email: "marco@univaqfooddelivery.it" }
-  ];
-
   // navigazione fra i tab
   document.querySelectorAll("#adminNav button").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -31,7 +23,7 @@
   // tutti gli ordini
   function renderAllOrders() {
     const listEl = document.getElementById("allOrdersList");
-    const tutti = [...ORDINI_CORRENTI, ...ORDINI_CLIENTE];
+    const tutti = [...ORDINI_CORRENTI];
     
     // ordino dal più recente (basato sull'orario richiesto)
     tutti.sort((a, b) => new Date(b.orario_richiesto) - new Date(a.orario_richiesto));
@@ -78,7 +70,7 @@
     }).join("");
   }
 
-  // gestione menu'
+// gestione menu'
   function renderMenuTable() {
     const tbody = document.getElementById("menuTableBody");
     tbody.innerHTML = MENU_DATA.prodotti.map(p => `
@@ -90,17 +82,32 @@
         <td>${p.tempo_preparazione}</td>
         <td>
           <div class="table-actions">
-            <button class="btn btn-primary btn-mini" onclick="alert('In prod: apre modale modifica piatto ${p.id}')">Modifica</button>
-            <button class="btn btn-ghost btn-mini" style="color:var(--stamp-red)">Elimina</button>
+            <button class="btn btn-primary btn-mini" onclick="openEditModal(${p.id})">Modifica</button>
+            <!-- Aggiunto data-del-prodotto -->
+            <button class="btn btn-ghost btn-mini" style="color:var(--stamp-red)" data-del-prodotto="${p.id}">Elimina</button>
           </div>
         </td>
       </tr>
     `).join("");
-  }
 
-  document.getElementById("btnNuovoProdotto").addEventListener("click", () => {
-    alert("In prod: apre modale con form vuoto per nuovo prodotto.");
-  });
+    // logica eliminazione prodotto
+    tbody.querySelectorAll("[data-del-prodotto]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        // Un piccolo alert di conferma per evitare cancellazioni accidentali
+        if (confirm("Sei sicuro di voler rimuovere questo prodotto dal menu?")) {
+          const id = parseInt(e.target.dataset.delProdotto);
+          
+          // Invia la richiesta POST al backend
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = "proprietario/menu/elimina";
+          form.innerHTML = `<input type="hidden" name="prodotto_id" value="${id}">`;
+          document.body.appendChild(form);
+          form.submit();
+        }
+      });
+    });
+  }
 
   // gestione personale
   function renderStaffTable() {
@@ -118,30 +125,38 @@
     tbody.querySelectorAll("[data-del-staff]").forEach(btn => {
       btn.addEventListener("click", (e) => {
         const id = parseInt(e.target.dataset.delStaff);
-        STAFF_DATA = STAFF_DATA.filter(staff => staff.id !== id);
-        renderStaffTable();
+        
+        // Invia la richiesta al backend
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "proprietario/personale/rimuovi";
+        form.innerHTML = `<input type="hidden" name="staff_id" value="${id}">`;
+        document.body.appendChild(form);
+        form.submit();
       });
     });
   }
 
-  document.getElementById("staffForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const nome = document.getElementById("staffNome").value;
-    const email = document.getElementById("staffEmail").value;
-    // La password in un caso reale verrebbe inviata al backend per l'hash
-    // da modificare
-    
-    STAFF_DATA.push({
-      id: Date.now(),
-      nome: nome,
-      email: email
-    });
-    
-    e.target.reset();
-    renderStaffTable();
-    alert(`Account per ${nome} creato con successo.`);
+  // gestione modale Nuovo Prodotto
+  document.getElementById("btnNuovoProdotto").addEventListener("click", () => {
+    document.getElementById("modalNewProduct").classList.add("open");
   });
 
+  // gestione modale Modifica
+  window.openEditModal = function(id) {
+    const p = MENU_DATA.prodotti.find(prod => prod.id === id);
+    if (!p) return;
+    
+    // popola i campi del form
+    document.getElementById("edit_id").value = p.id;
+    document.getElementById("edit_nome").value = p.nome;
+    document.getElementById("edit_prezzo").value = p.prezzo_base;
+    document.getElementById("edit_tempo").value = p.tempo_preparazione;
+    document.getElementById("edit_categoria").value = p.categoria || '';
+    document.getElementById("edit_descrizione").value = p.descrizione || '';
+    
+    document.getElementById("modalEditProduct").classList.add("open");
+  };
 
   // init
   renderAllOrders();

@@ -25,6 +25,27 @@
 
 <main class="checkout-main">
 
+  <!-- ordine confermato -->
+  <#if ordineConfermato??>
+    <!-- ordine confermato: Mostra i dati che arrivano dal Database -->
+    <section class="confirm-state" id="confirmState">
+      <div class="confirm-ticket">
+        <p class="ticket-eyebrow">Ordine registrato</p>
+        <h1>Comanda inviata in cucina!</h1>
+        <p id="confirmSummary">Riceverai a breve una email di riepilogo.</p>
+        <dl class="confirm-facts">
+          <div><dt>Numero ordine</dt><dd>${confermatoOrdine.id}</dd></div>
+          <div><dt>Totale</dt><dd>€${confermatoOrdine.prezzoTotale?string("0.00")}</dd></div>
+        </dl>
+        <a href="menu" class="btn btn-stamp">Torna alla home</a>
+        <a href="ordini" class="btn btn-ghost">Segui il tuo ordine</a>
+      </div>
+    </section>
+    <!-- Svuota il carrello dopo il salvataggio! -->
+  <script>localStorage.removeItem("wd_cart");</script>
+
+  <#else>
+
   <!-- carrello vuoto -->
   <section class="empty-state" id="emptyState" hidden>
     <p class="ticket-eyebrow">Comanda vuota</p>
@@ -48,7 +69,7 @@
           <strong id="summaryPrepTime">—</strong>
         </div>
         <div class="summary-row muted">
-          <span>+ Tempo di consegna stimato (distanza)</span>
+          <span>+ Tempo di consegna stimato</span>
           <strong id="summaryTravelTime">—</strong>
         </div>
         <div class="summary-row">
@@ -62,20 +83,15 @@
       </div>
     </div>
 
-    <form class="delivery-form" id="deliveryForm" novalidate>
+    <form class="delivery-form" id="deliveryForm" action="checkout" method="POST" novalidate>
       <p class="ticket-eyebrow">Consegna</p>
       <h2>Quando vuoi ricevere l'ordine?</h2>
 
       <div class="form-field">
-        <label for="orario">Data e ora di consegna</label>
-        <input type="datetime-local" id="orario" name="orario" required>
+        <label for="orario">Orario di consegna <span class="optional">(opzionale, default: il prima possibile)</span></label>
+        <input type="datetime-local" id="orario" name="orario">
         <p class="field-hint" id="orarioHint">Calcolo la prima fascia disponibile…</p>
         <p class="field-error" id="orarioError" role="alert"></p>
-      </div>
-
-      <div class="form-field">
-        <label for="note">Note per la cucina <span class="optional">(opzionale)</span></label>
-        <textarea id="note" name="note" rows="3" placeholder="Es. senza cipolla, citofono rotto, ecc."></textarea>
       </div>
 
       <div class="delivery-address" id="deliveryAddress">
@@ -92,21 +108,7 @@
     </form>
   </section>
 
-  <!-- ordine confermato -->
-  <section class="confirm-state" id="confirmState" hidden>
-    <div class="confirm-ticket">
-      <p class="ticket-eyebrow">Ordine registrato</p>
-      <h1>Comanda inviata in cucina!</h1>
-      <p id="confirmSummary">Riceverai a breve una email di riepilogo.</p>
-      <dl class="confirm-facts">
-        <div><dt>Numero ordine</dt><dd id="confirmId">—</dd></div>
-        <div><dt>Consegna prevista</dt><dd id="confirmTime">—</dd></div>
-        <div><dt>Totale</dt><dd id="confirmPrice">—</dd></div>
-      </dl>
-      <a href="menu" class="btn btn-stamp">Torna alla home</a>
-      <a href="ordini" class="btn btn-ghost">Segui il tuo ordine</a>
-    </div>
-  </section>
+  </#if>
 
 </main>
 

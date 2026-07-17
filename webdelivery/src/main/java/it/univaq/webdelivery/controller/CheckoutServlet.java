@@ -1,24 +1,24 @@
 package it.univaq.webdelivery.controller;
 
-import it.univaq.webdelivery.data.dao.OrdineDAO;
-import it.univaq.webdelivery.data.dao.ProdottoDAO;
-import it.univaq.webdelivery.data.model.Ordine;
-import it.univaq.webdelivery.data.model.Prodotto;
-import it.univaq.webdelivery.data.model.RigaOrdine;
-import it.univaq.webdelivery.data.model.Utente;
-
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.time.LocalDateTime;
+
+import it.univaq.webdelivery.data.dao.OrdineDAO;
+import it.univaq.webdelivery.data.dao.ProdottoDAO;
+import it.univaq.webdelivery.data.model.Ordine;
+import it.univaq.webdelivery.data.model.Prodotto;
+import it.univaq.webdelivery.data.model.RigaOrdine;
+import it.univaq.webdelivery.data.model.Utente;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @WebServlet(name = "CheckoutServlet", urlPatterns = {"/checkout"})
 public class CheckoutServlet extends BaseServlet {
@@ -40,6 +40,7 @@ public class CheckoutServlet extends BaseServlet {
 
         Map<String, Object> dataModel = new HashMap<>();
         dataModel.put("utente", utente);
+        dataModel.put("prodotti", prodottoDAO.getAll());
 
         renderTemplate("checkout.ftl", dataModel, request, response);
     }
@@ -56,6 +57,7 @@ public class CheckoutServlet extends BaseServlet {
 
         Map<String, Object> dataModel = new HashMap<>();
         dataModel.put("utente", utente);
+        dataModel.put("prodotti", prodottoDAO.getAll());
 
         if (orario == null || cartData == null || cartData.trim().isEmpty()) {
             dataModel.put("error", "Dati dell'ordine non completi.");

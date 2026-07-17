@@ -2,6 +2,7 @@ package it.univaq.webdelivery.data.dao;
 
 import it.univaq.webdelivery.data.DbConnectionManager;
 import it.univaq.webdelivery.data.model.Utente;
+import it.univaq.webdelivery.util.PasswordUtil;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -12,14 +13,16 @@ import java.util.logging.Logger;
 public class UtenteDAO {
 
     public Utente authenticate(String email, String password) {
-        String sql = "SELECT * FROM Utente WHERE email = ? AND password_hash = ?";
+        String sql = "SELECT * FROM Utente WHERE email = ?";
         try (Connection conn = DbConnectionManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
-            ps.setString(2, password); // Per ora controlliamo in chiaro come da file sql di esempio
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapUtente(rs);
+                    Utente utente = mapUtente(rs);
+                    if (PasswordUtil.verify(password, utente.getPasswordHash())) {
+                        return utente;
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -92,7 +95,8 @@ public class UtenteDAO {
     }
 
     public boolean removeStaff(int id) {
-        String sql = "DELETE FROM Utente WHERE id = ? AND ruolo = 'Personale'";
+        // Sostituita la DELETE con un UPDATE per declassare l'utente
+        String sql = "UPDATE Utente SET ruolo = 'Utente-Eliminato' WHERE id = ? AND ruolo = 'Personale'";
         try (Connection conn = DbConnectionManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);

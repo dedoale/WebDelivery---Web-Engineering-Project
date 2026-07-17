@@ -89,9 +89,9 @@
     const ORDINI_CORRENTI = [
         <#list ordiniCorrenti as o>
         {
-            id: "${o.id}",
+            id: "${o.id?js_string}",
             cliente: "${o.cliente?js_string}",
-            orario_richiesto: "${o.orarioRichiesto}",
+            orario_richiesto: "${o.orarioRichiesto.format("yyyy-MM-dd'T'HH:mm:ss")}",
             stato_attuale: "${o.statoAttuale?js_string}",
             righe: [
                 <#list o.righe as r>
@@ -99,8 +99,8 @@
                     prodotto_id: ${r.prodottoId},
                     qty: ${r.qty},
                     opzioni: [
-                        <#list r.opzioni as opt>
-                        "${opt?js_string}"<#sep>, </#sep>
+                        <#list r.opzioni as v>
+                        "${v?js_string}"<#sep>, </#sep>
                         </#list>
                     ]
                 }<#sep>,</#sep>
@@ -111,13 +111,16 @@
                 {
                     stato: "${st.stato?js_string}",
                     personale: "${(st.personale!'')?js_string}",
-                    timestamp: "${st.timestamp}"
+                    timestamp: "${st.timestamp.format("yyyy-MM-dd'T'HH:mm:ss")}"
                 }<#sep>,</#sep>
                 </#list>
             ]
         }<#sep>,</#sep>
         </#list>
     ];
+
+  const STATI_ORDINE = ["Inserito", "In preparazione", "Pronto", "In consegna", "Consegnato"];
+
 </script>
 <script src="js/staff.js"></script>
 </body>

@@ -119,7 +119,21 @@
     listEl.querySelectorAll("[data-advance]").forEach(btn => {
       btn.addEventListener("click", () => {
         const ordine = ORDINI_CORRENTI.find(o => o.id === btn.dataset.advance);
-        advanceOrder(ordine);
+        const nuovoStato = nextStatus(ordine.stato_attuale);
+        
+        // Estraiamo l'ID numerico reale del database rimuovendo "WD-"
+        const realId = ordine.id.replace("WD-", "");
+
+        // Creiamo un form invisibile che invia i dati reali alla StaffServlet
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "personale/aggiorna-stato";
+        form.innerHTML = `
+            <input type="hidden" name="ordine_id" value="${realId}">
+            <input type="hidden" name="stato" value="${nuovoStato}">
+        `;
+        document.body.appendChild(form);
+        form.submit(); // <-- Questo fa partire la richiesta al server!
       });
     });
     listEl.querySelectorAll("[data-prodotto]").forEach(btn => {

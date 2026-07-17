@@ -17,6 +17,7 @@ import it.univaq.webdelivery.data.dao.OrdineDAO;
 import it.univaq.webdelivery.data.dao.ProdottoDAO;
 import it.univaq.webdelivery.data.dao.UtenteDAO;
 import it.univaq.webdelivery.data.model.Ordine;
+import it.univaq.webdelivery.data.model.Prodotto;
 import it.univaq.webdelivery.data.model.RigaOrdine;
 import it.univaq.webdelivery.data.model.Utente;
 import jakarta.servlet.ServletException;
@@ -28,7 +29,10 @@ import jakarta.servlet.http.HttpServletResponse;
     "/proprietario", 
     "/proprietario/personale/aggiungi", 
     "/proprietario/personale/rimuovi",
-    "/proprietario/menu/elimina"
+    "/proprietario/menu/elimina",
+    "/proprietario/menu/aggiungi",
+    "/proprietario/menu/modifica",
+    "/proprietario/menu/ripristina"
 })
 public class ProprietarioServlet extends BaseServlet {
     private OrdineDAO ordineDAO;
@@ -111,13 +115,14 @@ public class ProprietarioServlet extends BaseServlet {
         dataModel.put("staff", utenteDAO.getStaffList());
         dataModel.put("ordini", ordini);
         
-        // Pass statistics to model
+        // passa statistiche al modello
         dataModel.put("statDate", targetDate.toString());
         dataModel.put("incassoGiorno", incassoGiorno);
         dataModel.put("incassoMese", incassoMese);
         dataModel.put("ordiniOggi", ordiniOggi);
         dataModel.put("topProdotti", topProdotti);
         dataModel.put("flopProdotti", flopProdotti);
+        dataModel.put("prodottiInattivi", prodottoDAO.getInactive());
 
         renderTemplate("proprietario.ftl", dataModel, request, response);
     }
@@ -137,11 +142,11 @@ public class ProprietarioServlet extends BaseServlet {
             String email = request.getParameter("email");
             String password = request.getParameter("password");
 
-            if (nome != null && email != null && password != null) {
+            if (nome != null && email != null && password != null && password.length() >= 8) {
                 Utente u = new Utente();
                 u.setNome(nome);
                 u.setEmail(email);
-                u.setPasswordHash(password);
+                u.setPasswordHash(it.univaq.webdelivery.util.PasswordUtil.hash(password));
                 u.setRuolo("Personale");
                 utenteDAO.addStaff(u);
             }
@@ -163,6 +168,48 @@ public class ProprietarioServlet extends BaseServlet {
                     prodottoDAO.delete(id);
                 } catch (NumberFormatException e) {
                     Logger.getLogger(ProprietarioServlet.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
+                }
+            }
+        } else if ("/proprietario/menu/ripristina".equals(path)) {
+            String idStr = request.getParameter("prodotto_id");
+            if (idStr != null) {
+                prodottoDAO.restore(Integer.parseInt(idStr));
+            }
+        } else if ("/proprietario/menu/aggiungi".equals(path)) {
+            Prodotto p = new Prodotto();
+            p.setNome(request.getParameter("nome"));
+            p.setPrezzoBase(Double.parseDouble(request.getParameter("prezzo_base")));
+            p.setTempoPreparazione(Integer.parseInt(request.getParameter("tempo_preparazione")));
+            p.setDescrizione(request.getParameter("descrizione"));
+            
+            // se l'admin lascia la categoria vuoto mette "Altro" di default
+            String cat = request.getParameter("categoria");
+            if (cat == null || cat.trim().isEmpty()) {
+                p.setCategoria("Altro");
+            } else {
+                p.setCategoria(cat.trim());
+            }
+            
+            prodottoDAO.create(p);
+        } else if ("/proprietario/menu/modifica".equals(path)) {
+            String idStr = request.getParameter("prodotto_id");
+            if (idStr != null) {
+                Prodotto p = prodottoDAO.getById(Integer.parseInt(idStr));
+                if (p != null) {
+                    p.setNome(request.getParameter("nome"));
+                    p.setPrezzoBase(Double.parseDouble(request.getParameter("prezzo_base")));
+                    p.setTempoPreparazione(Integer.parseInt(request.getParameter("tempo_preparazione")));
+                    p.setDescrizione(request.getParameter("descrizione"));
+                    
+                    // se l'admin lascia la categoria vuoto mette "Altro" di default
+                    String cat = request.getParameter("categoria");
+                    if (cat == null || cat.trim().isEmpty()) {
+                        p.setCategoria("Altro");
+                    } else {
+                        p.setCategoria(cat.trim());
+                    }
+                    
+                    prodottoDAO.update(p);
                 }
             }
         }

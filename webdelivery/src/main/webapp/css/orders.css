@@ -58,7 +58,7 @@
   background: var(--line); z-index: 0;
 }
 .status-step:first-child::before { display: none; }
-.status-step.done::before { background: var(--kitchen-green); }
+.status-step.done::before, .status-step.current::before { background: var(--kitchen-green); }
 
 
 .order-details { margin-top: 1.2rem; border-top: 1px dashed var(--line); padding-top: 1rem; display: none; }
