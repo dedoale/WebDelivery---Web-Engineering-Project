@@ -36,6 +36,7 @@
         <dl class="confirm-facts">
           <div><dt>Numero ordine</dt><dd>${confermatoOrdine.id}</dd></div>
           <div><dt>Totale</dt><dd>€${confermatoOrdine.prezzoTotale?string("0.00")}</dd></div>
+          <div><dt>Orario consegna</dt><dd>${confermatoOrdine.orarioRichiesto.format('HH:mm')}</dd></div>
         </dl>
         <a href="menu" class="btn btn-stamp">Torna alla home</a>
         <a href="ordini" class="btn btn-ghost">Segui il tuo ordine</a>

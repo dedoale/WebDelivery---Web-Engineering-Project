@@ -64,15 +64,24 @@
 
   function nextAvailableSlot(now, minutesToAdd) {
     const earliest = new Date(now.getTime() + minutesToAdd * 60000);
+
     for (let dayOffset = 0; dayOffset < 3; dayOffset++) {
       const day = new Date(now);
       day.setDate(day.getDate() + dayOffset);
+
       for (const fascia of FASCE) {
         const apertura = toDateOnDay(day, fascia.start);
         const chiusura = toDateOnDay(day, fascia.end);
-        if (earliest <= chiusura && chiusura > now) {
-          const start = earliest > apertura ? earliest : apertura;
-          if (start <= chiusura) return { min: start, max: chiusura };
+
+        // l'inizio della preparazione è "adesso" se il locale è aperto
+        // oppure l'orario di apertura se il locale deve ancora aprire o è domani
+        const inizioPrep = now > apertura ? now : apertura;
+
+        // la consegna minima sarà Inizio Preparazione + Tempo Totale
+        const deliveryTime = new Date(inizioPrep.getTime() + minutesToAdd * 60000);
+
+        if (deliveryTime <= chiusura && chiusura > now) {
+          return { min: deliveryTime, max: chiusura };
         }
       }
     }
@@ -94,7 +103,7 @@
     orarioInput.min = toInputValue(slot.min);
     orarioInput.max = toInputValue(slot.max);
     orarioInput.value = toInputValue(slot.min);
-    orarioHint.textContent = `Disponibile tra le ${fmtTime(slot.min)} e le ${fmtTime(slot.max)}.`;
+    orarioHint.textContent = `Consegna disponibile tra le ${fmtTime(slot.min)} e le ${fmtTime(slot.max)}.`;
   } else {
     orarioHint.textContent = "Nessuna fascia di consegna disponibile a breve, riprova più tardi.";
     orarioInput.disabled = true;

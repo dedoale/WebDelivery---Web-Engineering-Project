@@ -59,7 +59,7 @@
               ${ordine.storico.map(h => `
                 <li>
                   <strong>${h.stato}</strong>
-                  ${h.personale ? ` impostato da <span style="color:var(--stamp-red)">${h.personale}</span>` : " (Cliente)"}
+                  ${h.personale ? ` impostato da <span style="color:var(--stamp-red)">${h.personale}</span>` : " da cliente"}
                   · ${fmtDate(h.timestamp)}
                 </li>
               `).join("")}

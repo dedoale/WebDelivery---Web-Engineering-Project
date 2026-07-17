@@ -22,18 +22,26 @@ public final class OrarioConsegna {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime earliest = now.plusMinutes(tempoConsegnaStimatoMinuti);
-
-        if (orarioRichiesto.isBefore(earliest)) {
-            return false;
-        }
-
         LocalTime ora = orarioRichiesto.toLocalTime();
+
         for (LocalTime[] fascia : FASCE) {
             LocalTime apertura = fascia[0];
             LocalTime chiusura = fascia[1];
+
+            // controlla se l'orario richiesto rientra in una delle fasce
             if (!ora.isBefore(apertura) && !ora.isAfter(chiusura)) {
-                return true;
+
+                // calcolo inizio preparazione
+                LocalDateTime aperturaDelGiornoRichiesto = orarioRichiesto.toLocalDate().atTime(apertura);
+                LocalDateTime inizioPrep = now.isAfter(aperturaDelGiornoRichiesto) ? now : aperturaDelGiornoRichiesto;
+                
+                // calcolo orario minimo di consegna
+                LocalDateTime orarioMinimoConsentito = inizioPrep.plusMinutes(tempoConsegnaStimatoMinuti);
+
+                // 4. orarioRichiesto non può essere precedente a orarioMinimoConsentito
+                if (!orarioRichiesto.isBefore(orarioMinimoConsentito)) {
+                    return true;
+                }
             }
         }
         return false;
