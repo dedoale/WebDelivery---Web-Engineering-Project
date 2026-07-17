@@ -162,7 +162,9 @@
       <button class="modal-close" onclick="document.getElementById('modalNewProduct').classList.remove('open')">&times;</button>
       
       <h3>Aggiungi Nuovo Prodotto</h3>
-      <form action="proprietario/menu/aggiungi" method="POST" class="auth-form" style="margin-bottom: 2rem;">
+      <form action="proprietario/menu/aggiungi" method="POST" class="auth-form" enctype="multipart/form-data" id="formNewProduct" style="margin-bottom: 2rem;">
+        <input type="hidden" name="ingredienti_json" id="new_ingr_json">
+        <input type="hidden" name="caratteristiche_json" id="new_caratt_json">
         <div class="form-row-split">
           <div class="form-field"><label>Nome</label><input type="text" name="nome" required></div>
           <div class="form-field"><label>Prezzo Base (€)</label><input type="number" step="0.01" name="prezzo_base" required></div>
@@ -175,7 +177,30 @@
           <label>Descrizione</label>
           <textarea name="descrizione" rows="2" required style="width:100%; border:1.5px solid var(--line); border-radius:2px; padding:0.5em; font-family:var(--font-body)"></textarea>
         </div>
-        <button type="submit" class="btn btn-stamp btn-full">Salva Nuovo Prodotto</button>
+        
+        <div class="form-field" style="margin-top: 1rem;">
+          <label>Procedura Preparazione</label>
+          <textarea name="procedura" rows="2" style="width:100%; border:1.5px solid var(--line); border-radius:2px; padding:0.5em; font-family:var(--font-body)"></textarea>
+        </div>
+        
+        <div class="form-field" style="margin-top: 1rem;">
+          <label>Immagine Prodotto</label>
+          <input type="file" name="immagine" accept="image/*">
+        </div>
+
+        <div style="margin-top: 2rem; border-top: 1px solid var(--line); padding-top: 1rem;">
+          <h4>Ingredienti</h4>
+          <div id="new_ingredienti_container"></div>
+          <button type="button" class="btn btn-ghost btn-mini" onclick="addIngredienteRow('new')">+ Aggiungi Ingrediente</button>
+        </div>
+
+        <div style="margin-top: 2rem; border-top: 1px solid var(--line); padding-top: 1rem;">
+          <h4>Caratteristiche / Opzioni</h4>
+          <div id="new_caratteristiche_container"></div>
+          <button type="button" class="btn btn-ghost btn-mini" onclick="addCaratteristicaGroup('new')">+ Aggiungi Gruppo</button>
+        </div>
+        
+        <button type="submit" class="btn btn-stamp btn-full" style="margin-top: 2rem;">Salva Nuovo Prodotto</button>
       </form>
 
       <hr style="border: 0; border-top: 1px dashed var(--line); margin: 2rem 0;">
@@ -204,8 +229,10 @@
     <div class="modal-ticket" style="max-width: 600px; padding: 2rem;">
       <button class="modal-close" onclick="document.getElementById('modalEditProduct').classList.remove('open')">&times;</button>
       <h3>Modifica Prodotto</h3>
-      <form action="proprietario/menu/modifica" method="POST" class="auth-form">
+      <form action="proprietario/menu/modifica" method="POST" class="auth-form" enctype="multipart/form-data" id="formEditProduct">
         <input type="hidden" name="prodotto_id" id="edit_id">
+        <input type="hidden" name="ingredienti_json" id="edit_ingr_json">
+        <input type="hidden" name="caratteristiche_json" id="edit_caratt_json">
         <div class="form-row-split">
           <div class="form-field"><label>Nome</label><input type="text" name="nome" id="edit_nome" required></div>
           <div class="form-field"><label>Prezzo Base (€)</label><input type="number" step="0.01" name="prezzo_base" id="edit_prezzo" required></div>
@@ -218,7 +245,30 @@
           <label>Descrizione</label>
           <textarea name="descrizione" id="edit_descrizione" rows="2" required style="width:100%; border:1.5px solid var(--line); border-radius:2px; padding:0.5em; font-family:var(--font-body)"></textarea>
         </div>
-        <button type="submit" class="btn btn-primary btn-full">Aggiorna Prodotto</button>
+        
+        <div class="form-field" style="margin-top: 1rem;">
+          <label>Procedura Preparazione</label>
+          <textarea name="procedura" id="edit_procedura" rows="2" style="width:100%; border:1.5px solid var(--line); border-radius:2px; padding:0.5em; font-family:var(--font-body)"></textarea>
+        </div>
+        
+        <div class="form-field" style="margin-top: 1rem;">
+          <label>Nuova Immagine (lascia vuoto per non modificare)</label>
+          <input type="file" name="immagine" accept="image/*">
+        </div>
+
+        <div style="margin-top: 2rem; border-top: 1px solid var(--line); padding-top: 1rem;">
+          <h4>Ingredienti</h4>
+          <div id="edit_ingredienti_container"></div>
+          <button type="button" class="btn btn-ghost btn-mini" onclick="addIngredienteRow('edit')">+ Aggiungi Ingrediente</button>
+        </div>
+
+        <div style="margin-top: 2rem; border-top: 1px solid var(--line); padding-top: 1rem;">
+          <h4>Caratteristiche / Opzioni</h4>
+          <div id="edit_caratteristiche_container"></div>
+          <button type="button" class="btn btn-ghost btn-mini" onclick="addCaratteristicaGroup('edit')">+ Aggiungi Gruppo</button>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" style="margin-top: 2rem;">Aggiorna Prodotto</button>
       </form>
     </div>
   </div>
@@ -237,7 +287,36 @@
                 categoria: "${(p.categoria!'')?js_string}",
                 prezzo_base: ${p.prezzoBase?c},
                 tempo_preparazione: ${p.tempoPreparazione},
-                descrizione: "${p.descrizione?js_string}"
+                descrizione: "${p.descrizione?js_string}",
+                procedura: "${(p.procedura!'')?js_string}",
+                ingredienti: [
+                    <#if p.ingredienti??>
+                    <#list p.ingredienti as i>
+                    { nome: "${i.nome?js_string}", quantita: "${i.quantita?js_string}" }<#sep>,</#sep>
+                    </#list>
+                    </#if>
+                ],
+                gruppi: [
+                    <#if p.gruppi??>
+                    <#list p.gruppi as g>
+                    {
+                        nome: "${g.nome?js_string}",
+                        mutua_esclusione: ${g.isMutuaEsclusione()?c},
+                        opzioni: [
+                            <#if g.opzioni??>
+                            <#list g.opzioni as opt>
+                            {
+                                nome: "${opt.nome?js_string}",
+                                differenza_prezzo: ${opt.differenzaPrezzo?c},
+                                is_default: ${opt.isDefault()?c}
+                            }<#sep>,</#sep>
+                            </#list>
+                            </#if>
+                        ]
+                    }<#sep>,</#sep>
+                    </#list>
+                    </#if>
+                ]
             }<#sep>,</#sep>
             </#list>
         ]
@@ -284,6 +363,6 @@
 
     const ORDINI_CLIENTE = [];
 </script>
-<script src="js/proprietario.js"></script>
+<script src="js/proprietario.js?v=2"></script>
 </body>
 </html>

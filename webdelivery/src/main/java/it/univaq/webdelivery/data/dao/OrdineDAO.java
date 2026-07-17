@@ -157,6 +157,23 @@ public class OrdineDAO {
         return list;
     }
 
+    public Ordine getById(int idOrdine) {
+        String sql = "SELECT o.*, u.nome AS nome_cliente FROM Ordine o " +
+                     "JOIN Utente u ON o.id_cliente = u.id WHERE o.id = ?";
+        try (Connection conn = DbConnectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idOrdine);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return fetchOrdineRelazioni(conn, rs);
+                }
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(OrdineDAO.class.getName()).log(Level.SEVERE, "Errore durante l'accesso al database", e);
+        }
+        return null;
+    }
+
     public boolean updateStato(int idOrdine, String nuovoStato, int idStaff) {
         // Definizione della sequenza corretta degli stati
         List<String> sequenzaStati = List.of("Inserito", "In preparazione", "Pronto", "In consegna", "Consegnato");
