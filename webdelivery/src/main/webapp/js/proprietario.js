@@ -7,6 +7,12 @@
   });
   const slug = (s) => s.toLowerCase().replace(/\s+/g, "-");
 
+  // I dati vengono caricati da /api/prodotti, /api/personale e /api/ordini (Gson),
+  // esattamente come fa menu.js per il catalogo pubblico.
+  let MENU_DATA = { prodotti: [] };
+  let STAFF_DATA = [];
+  let ORDINI_CORRENTI = [];
+
   // navigazione fra i tab
   document.querySelectorAll("#adminNav button").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -164,9 +170,9 @@
     }
     if (p.gruppi) {
       p.gruppi.forEach(g => {
-        const gid = addCaratteristicaGroup('edit', g.nome, g.mutua_esclusione);
+        const gid = addCaratteristicaGroup('edit', g.nome, g.mutua_esclusione, g.id);
         if (g.opzioni) {
-          g.opzioni.forEach(o => addOpzioneRow('edit', gid, o.nome, o.differenza_prezzo, o.is_default));
+          g.opzioni.forEach(o => addOpzioneRow('edit', gid, o.nome, o.differenza_prezzo, o.is_default, o.id));
         }
       });
     }
@@ -190,11 +196,12 @@
     container.appendChild(div);
   };
 
-  window.addCaratteristicaGroup = function(prefix, nome = "", mutua = false, id_ = null) {
+  window.addCaratteristicaGroup = function(prefix, nome = "", mutua = false, dbId = null) {
     const container = document.getElementById(prefix + "_caratteristiche_container");
-    const groupId = id_ || ("grp_" + (grpIdCounter++));
+    const localId = "grp_" + (grpIdCounter++);
     const div = document.createElement("div");
     div.className = prefix + "-grp-container";
+    div.dataset.dbId = (dbId !== null && dbId !== undefined) ? dbId : "";
     div.style.border = "1px solid var(--line)";
     div.style.padding = "1rem";
     div.style.marginBottom = "1rem";
@@ -206,17 +213,18 @@
         </div>
         <button type="button" class="btn btn-ghost btn-mini" style="color:var(--stamp-red)" onclick="this.parentElement.parentElement.remove()">Rimuovi Gruppo</button>
       </div>
-      <div id="${prefix}_opts_${groupId}"></div>
-      <button type="button" class="btn btn-ghost btn-mini" onclick="addOpzioneRow('${prefix}', '${groupId}')">+ Aggiungi Opzione</button>
+      <div id="${prefix}_opts_${localId}"></div>
+      <button type="button" class="btn btn-ghost btn-mini" onclick="addOpzioneRow('${prefix}', '${localId}')">+ Aggiungi Opzione</button>
     `;
     container.appendChild(div);
-    return groupId;
+    return localId;
   };
 
-  window.addOpzioneRow = function(prefix, groupId, nome = "", diff = 0, def = false) {
+  window.addOpzioneRow = function(prefix, groupId, nome = "", diff = 0, def = false, dbId = null) {
     const container = document.getElementById(`${prefix}_opts_${groupId}`);
     const div = document.createElement("div");
     div.className = "form-row-split " + prefix + "-opt-row";
+    div.dataset.dbId = (dbId !== null && dbId !== undefined) ? dbId : "";
     div.style.marginBottom = "0.5rem";
     div.innerHTML = `
       <div class="form-field"><input type="text" placeholder="Opzione" class="opt-nome" value="${nome}" required></div>
@@ -230,7 +238,7 @@
   };
 
   function serializeForms(prefix) {
-    const ingrRows = document.querySelectorAll(`.\${prefix}-ingr-row`);
+    const ingrRows = document.querySelectorAll(`.${prefix}-ingr-row`);
     const ingredienti = [];
     ingrRows.forEach(row => {
       ingredienti.push({
@@ -239,16 +247,18 @@
       });
     });
     
-    const grpContainers = document.querySelectorAll(`.\${prefix}-grp-container`);
+    const grpContainers = document.querySelectorAll(`.${prefix}-grp-container`);
     const gruppi = [];
     grpContainers.forEach(grp => {
       const g = {
+        id: grp.dataset.dbId ? parseInt(grp.dataset.dbId, 10) : 0,
         nome: grp.querySelector('.grp-nome').value,
         mutua_esclusione: grp.querySelector('.grp-mutua').checked,
         opzioni: []
       };
-      grp.querySelectorAll(`.\${prefix}-opt-row`).forEach(opt => {
+      grp.querySelectorAll(`.${prefix}-opt-row`).forEach(opt => {
         g.opzioni.push({
+          id: opt.dataset.dbId ? parseInt(opt.dataset.dbId, 10) : 0,
           nome: opt.querySelector('.opt-nome').value,
           diff_prezzo: parseFloat(opt.querySelector('.opt-diff').value) || 0,
           is_default: opt.querySelector('.opt-def').checked
@@ -257,16 +267,34 @@
       gruppi.push(g);
     });
 
-    document.getElementById(`\${prefix}_ingr_json`).value = JSON.stringify(ingredienti);
-    document.getElementById(`\${prefix}_caratt_json`).value = JSON.stringify(gruppi);
+    document.getElementById(`${prefix}_ingr_json`).value = JSON.stringify(ingredienti);
+    document.getElementById(`${prefix}_caratt_json`).value = JSON.stringify(gruppi);
   }
 
   document.getElementById("formNewProduct").addEventListener("submit", () => serializeForms('new'));
   document.getElementById("formEditProduct").addEventListener("submit", () => serializeForms('edit'));
 
-  // init
-  renderAllOrders();
-  renderMenuTable();
-  renderStaffTable();
+  // Carica prodotti, personale e ordini dalle API JSON, poi avvia il
+  // rendering delle tre tabelle/liste della dashboard.
+  function init() {
+    Promise.all([
+      fetch("api/prodotti").then(r => r.json()),
+      fetch("api/personale").then(r => r.json()),
+      fetch("api/ordini").then(r => r.json())
+    ])
+      .then(([menuData, staffData, ordini]) => {
+        MENU_DATA = menuData;
+        STAFF_DATA = staffData;
+        ORDINI_CORRENTI = ordini;
+        renderAllOrders();
+        renderMenuTable();
+        renderStaffTable();
+      })
+      .catch(err => {
+        console.error("Errore nel caricamento dei dati della dashboard:", err);
+      });
+  }
+
+  init();
 
 })();

@@ -1,17 +1,17 @@
 package it.univaq.webdelivery.controller;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import it.univaq.webdelivery.data.dao.UtenteDAO;
 import it.univaq.webdelivery.data.model.Utente;
 import it.univaq.webdelivery.util.PasswordUtil;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 @WebServlet(name = "AuthServlet", urlPatterns = {"/login", "/registrazione", "/logout"})
 public class AuthServlet extends BaseServlet {

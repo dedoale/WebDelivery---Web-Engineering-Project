@@ -65,62 +65,7 @@
 
 <script>
     const PERSONALE_CORRENTE = "<#if utente??>${utente.nome?js_string}<#else>Ospite</#if>";
-
-    const MENU_DATA = {
-        prodotti: [
-            <#list prodotti as p>
-            {
-                id: ${p.id},
-                nome: "${p.nome?js_string}",
-                descrizione: "${p.descrizione?js_string}",
-                tempo_preparazione: ${p.tempoPreparazione},
-                categoria: "${(p.categoria!'')?js_string}",
-                procedura: "${(p.procedura!'')?js_string}",
-                ingredienti: [
-                    <#list p.ingredienti as i>
-                    { nome: "${i.nome?js_string}", quantita: "${i.quantita?js_string}" }<#sep>,</#sep>
-                    </#list>
-                ]
-            }<#sep>,</#sep>
-            </#list>
-        ]
-    };
-
-    const ORDINI_CORRENTI = [
-        <#list ordiniCorrenti as o>
-        {
-            id: "${o.id?js_string}",
-            cliente: "${o.cliente?js_string}",
-            orario_richiesto: "${o.orarioRichiesto.format("yyyy-MM-dd'T'HH:mm:ss")}",
-            stato_attuale: "${o.statoAttuale?js_string}",
-            righe: [
-                <#list o.righe as r>
-                {
-                    prodotto_id: ${r.prodottoId},
-                    qty: ${r.qty},
-                    opzioni: [
-                        <#list r.opzioni as v>
-                        "${v?js_string}"<#sep>, </#sep>
-                        </#list>
-                    ]
-                }<#sep>,</#sep>
-                </#list>
-            ],
-            storico: [
-                <#list o.storico as st>
-                {
-                    stato: "${st.stato?js_string}",
-                    personale: "${(st.personale!'')?js_string}",
-                    timestamp: "${st.timestamp.format("yyyy-MM-dd'T'HH:mm:ss")}"
-                }<#sep>,</#sep>
-                </#list>
-            ]
-        }<#sep>,</#sep>
-        </#list>
-    ];
-
-  const STATI_ORDINE = ["Inserito", "In preparazione", "Pronto", "In consegna", "Consegnato"];
-
+    const STATI_ORDINE = ["Inserito", "In preparazione", "Pronto", "In consegna", "Consegnato"];
 </script>
 <script src="js/staff.js"></script>
 </body>

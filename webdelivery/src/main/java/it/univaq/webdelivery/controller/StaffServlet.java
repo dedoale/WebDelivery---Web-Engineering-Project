@@ -1,31 +1,27 @@
 package it.univaq.webdelivery.controller;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import it.univaq.webdelivery.data.dao.OrdineDAO;
-import it.univaq.webdelivery.data.dao.ProdottoDAO;
+import it.univaq.webdelivery.data.dao.UtenteDAO;
 import it.univaq.webdelivery.data.model.Ordine;
 import it.univaq.webdelivery.data.model.Utente;
-import it.univaq.webdelivery.data.dao.UtenteDAO;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @WebServlet(name = "StaffServlet", urlPatterns = {"/personale", "/personale/aggiorna-stato"})
 public class StaffServlet extends BaseServlet {
     private OrdineDAO ordineDAO;
-    private ProdottoDAO prodottoDAO;
     private UtenteDAO utenteDAO;
 
     @Override
     public void init() throws ServletException {
         super.init();
         this.ordineDAO = new OrdineDAO();
-        this.prodottoDAO = new ProdottoDAO();
         this.utenteDAO = new UtenteDAO();
     }
 
@@ -37,12 +33,10 @@ public class StaffServlet extends BaseServlet {
 
         if (!verificaRuoli(utente, response, "Personale", "Proprietario")) return;
 
-        List<Ordine> ordiniCorrenti = ordineDAO.getOrdiniCorrenti();
-
+        // prodotti e ordini correnti arrivano a staff.js
+        // via fetch da /api/prodotti e /api/ordini (Gson)
         Map<String, Object> dataModel = new HashMap<>();
         dataModel.put("utente", utente);
-        dataModel.put("ordiniCorrenti", ordiniCorrenti);
-        dataModel.put("prodotti", prodottoDAO.getAll());
 
         renderTemplate("personale.ftl", dataModel, request, response);
     }

@@ -41,10 +41,10 @@
         <a href="registrazione" class="btn btn-primary">Registrati</a>
       </#if>
 
-      <button class="cart-btn" id="cartToggle" aria-label="Apri carrello" aria-expanded="false">
+      <a class="cart-btn" id="cartToggle" href="carrello" aria-label="Apri carrello" aria-expanded="false">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
         <span class="cart-count" id="cartCount">0</span>
-      </button>
+      </a>
     </div>
   </div>
 </header>

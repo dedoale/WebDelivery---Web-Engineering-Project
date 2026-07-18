@@ -9,8 +9,8 @@
   --gold:         #A6772C;
   --line:         #C9BFA8;
   --radius: 2px;
-  --font-display: 'Courier Prime', 'Special Elite', ui-monospace, 'Courier New', monospace;
-  --font-body: 'Work Sans', 'Segoe UI', system-ui, sans-serif;
+  --font-display: ui-monospace, 'Courier New', monospace;
+  --font-body: 'Segoe UI', system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -25,7 +25,12 @@ body {
 h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em; margin: 0 0 .4em; }
 a { color: inherit; }
 img { max-width: 100%; display: block; }
-button { font-family: inherit; cursor: pointer; }
+button {
+  font-family: inherit; cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+  background: none; border: none; margin: 0; padding: 0;
+  box-sizing: border-box; line-height: normal;
+}
 
 .ticket-eyebrow {
   font-family: var(--font-display);
@@ -46,6 +51,9 @@ button { font-family: inherit; cursor: pointer; }
   text-decoration: none;
   border: 1.5px solid var(--ink);
   transition: transform .12s ease, background .12s ease;
+
+  white-space: nowrap; 
+  flex-shrink: 0;
 }
 .btn-ghost { background: transparent; color: var(--ink); }
 .btn-ghost:hover { background: var(--paper-dark); }
@@ -141,11 +149,12 @@ button { font-family: inherit; cursor: pointer; }
 .product-card {
   background: #fff;
   border: 1.5px solid var(--ink);
-  padding: 1.1rem 1.1rem 1.3rem;
+  padding: 1.1rem 1.1rem 0;
   cursor: pointer;
   position: relative;
-  display: flex; flex-direction: column; gap: .5rem;
+  display: flex; flex-direction: column;
   transition: transform .12s ease;
+  overflow: hidden;
 }
 .product-card:hover { transform: translateY(-3px); }
 .product-card:focus-visible { outline: 3px solid var(--stamp-red); outline-offset: 2px; }
@@ -156,9 +165,34 @@ button { font-family: inherit; cursor: pointer; }
   overflow: hidden;
 }
 .product-img img { width: 100%; height: 100%; object-fit: cover; }
+.product-open {
+  background: none; border: none; padding: 0; margin: 0; text-align: left;
+  display: flex; flex-direction: column; gap: .5rem; cursor: pointer;
+  font: inherit; color: inherit; width: 100%;
+  flex: 1 1 auto;
+  position: relative;
+}
+.product-open:focus-visible { outline: 3px solid var(--stamp-red); outline-offset: 2px; }
+.product-open::after {
+  content: "Tocca per personalizzare →";
+  font-size: .72rem; color: var(--ink-soft); font-style: italic;
+}
 .product-name { font-family: var(--font-display); font-size: 1.02rem; margin: 0; }
 .product-desc { color: var(--ink-soft); font-size: .87rem; flex-grow: 1; }
-.product-foot { display: flex; align-items: center; justify-content: space-between; }
+.product-foot {
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+
+  gap: 0.5rem; 
+  flex-wrap: wrap;
+
+  margin: .9rem -1.1rem 0; 
+  padding: .7rem 1.1rem;
+  border-top: 1.5px dashed var(--line);
+  background: var(--paper-dark);
+}
+.product-foot .btn-small { padding: .35rem .7rem; font-size: .78rem; }
 .product-price {
   font-family: var(--font-display); font-weight: 700;
   color: var(--stamp-red);

@@ -1,18 +1,38 @@
 (function () {
   "use strict";
 
-  // il carrello viene salvato in localStorage
-  const CART_KEY = "wd_cart";
-  function loadCart() {
-    try {
-      return JSON.parse(localStorage.getItem(CART_KEY)) || [];
-    } catch (e) { return []; }
-  }
-  function saveCart() {
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+/** Gestisce il carrello lato server (sessione),
+ * JS disattivato: aggiungere/rimuovere un articolo funziona comunque tramite <form>
+ * 
+ * JS attivo: menu.js intercetta gli stessi endpoint via fetch per
+ * offrire l'esperienza "arricchita" (modale, drawer animato, ecc)
+ */
+  let cart = [];
+
+  function addToCartServer(prodottoId, qty, opzioniScelte) {
+    const params = new URLSearchParams();
+    params.set("prodotto_id", prodottoId);
+    params.set("qty", qty);
+    opzioniScelte.forEach(o => params.append("car_" + o.id_gruppo, o.id));
+    return fetch("carrello/aggiungi", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", "X-Requested-With": "fetch" },
+      credentials: "same-origin",
+      body: params.toString()
+    });
   }
 
-  let cart = loadCart();
+  function removeFromCartServer(indice) {
+    const params = new URLSearchParams();
+    params.set("indice", indice);
+    return fetch("carrello/rimuovi", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", "X-Requested-With": "fetch" },
+      credentials: "same-origin",
+      body: params.toString()
+    });
+  }
+
   let activeCategory = "Tutte";
   let currentProduct = null;
   let currentSelection = {};
@@ -48,14 +68,26 @@
   // render griglia prodotti
   function renderGrid() {
     const grid = document.getElementById("menuGrid");
-    
-    grid.querySelectorAll(".product-card").forEach(card => {
-      const idProdotto = Number(card.dataset.id); 
-      
-      const open = () => openModal(idProdotto);
-      
-      card.addEventListener("click", open);
-      card.addEventListener("keydown", (e) => { if (e.key === "Enter") open(); });
+
+    grid.querySelectorAll(".product-open").forEach(btn => {
+      btn.addEventListener("click", () => openModal(Number(btn.dataset.id)));
+    });
+
+    // Intercettiamo il form "Aggiungi al carrello" per evitare il ricaricamento della pagina,
+    //  il comportamento (aggiunta con le caratteristiche di default) resta identico
+    grid.querySelectorAll(".product-card form").forEach(form => {
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const prodottoId = Number(form.querySelector("[name=prodotto_id]").value);
+        const prodotto = MENU_DATA.prodotti.find(p => p.id === prodottoId);
+        const opzioniDefault = [];
+        if (prodotto) {
+          prodotto.gruppi.forEach(g => {
+            g.opzioni.forEach(o => { if (o.is_default) opzioniDefault.push({ id_gruppo: g.id, id: o.id }); });
+          });
+        }
+        addToCartServer(prodottoId, 1, opzioniDefault).then(refreshCart).then(openCart);
+      });
     });
   }
 
@@ -167,60 +199,54 @@
     const opzioniScelte = [];
     currentProduct.gruppi.forEach((g, gi) => {
       g.opzioni.forEach(o => {
-        if (currentSelection[gi].includes(o.id)) opzioniScelte.push(o);
+        if (currentSelection[gi].includes(o.id)) opzioniScelte.push({ id_gruppo: g.id, id: o.id });
       });
     });
-    cart.push({
-      lineId: Date.now() + Math.random(),
-      prodotto: currentProduct,
-      opzioniScelte,
-      qty: currentQty,
-      prezzoUnitario: computeUnitPrice()
+    addToCartServer(currentProduct.id, currentQty, opzioniScelte).then(refreshCart).then(() => {
+      closeModal();
+      openCart();
     });
-    saveCart();
-    renderCart();
-    closeModal();
-    openCart();
   });
 
-  // carrello
+  // carrello: renderizzato a partire dai dati reali presi dal server (JSON da GET /carrello)
+  function refreshCart() {
+    return fetch("carrello", { headers: { "X-Requested-With": "fetch" }, credentials: "same-origin" })
+      .then(res => res.json())
+      .then(data => { cart = data; renderCart(); });
+  }
+
   function renderCart() {
     const list = document.getElementById("cartList");
     const empty = document.getElementById("cartEmpty");
     const count = document.getElementById("cartCount");
 
-    count.textContent = cart.reduce((s, l) => s + l.qty, 0);
+    count.textContent = cart.righe ? cart.righe.reduce((s, l) => s + l.qty, 0) : 0;
 
-    if (cart.length === 0) {
+    if (!cart.righe || cart.righe.length === 0) {
       list.innerHTML = "";
       empty.style.display = "block";
     } else {
       empty.style.display = "none";
-      list.innerHTML = cart.map(line => `
-        <li class="cart-item" data-line="${line.lineId}">
+      list.innerHTML = cart.righe.map(line => `
+        <li class="cart-item">
           <div class="cart-item-top">
-            <span>${line.qty} × ${line.prodotto.nome}</span>
+            <span>${line.qty} × ${line.nome}</span>
             <span>${fmt(line.prezzoUnitario * line.qty)}</span>
           </div>
-          ${line.opzioniScelte.length ? `<div class="cart-item-opts">${line.opzioniScelte.map(o => o.nome).join(", ")}</div>` : ""}
-          <button class="cart-item-remove" data-remove="${line.lineId}">Rimuovi</button>
+          ${line.opzioni ? `<div class="cart-item-opts">${line.opzioni}</div>` : ""}
+          <button class="cart-item-remove" data-remove="${line.indice}">Rimuovi</button>
         </li>
       `).join("");
 
       list.querySelectorAll("[data-remove]").forEach(btn => {
         btn.addEventListener("click", () => {
-          const id = Number(btn.dataset.remove);
-          cart = cart.filter(l => l.lineId !== id);
-          saveCart();
-          renderCart();
+          removeFromCartServer(Number(btn.dataset.remove)).then(refreshCart);
         });
       });
     }
 
-    const totale = cart.reduce((s, l) => s + l.prezzoUnitario * l.qty, 0);
-    const tempoStimato = cart.reduce((s, l) => s + l.prodotto.tempo_preparazione * l.qty, 0);
-    document.getElementById("cartTotal").textContent = fmt(totale);
-    document.getElementById("cartTime").textContent = cart.length ? `~${tempoStimato} min` : "—";
+    document.getElementById("cartTotal").textContent = fmt(cart.totale || 0);
+    document.getElementById("cartTime").textContent = (cart.righe && cart.righe.length) ? `~${cart.tempoPreparazione} min` : "—";
   }
 
   function openCart() {
@@ -234,7 +260,12 @@
     document.getElementById("cartToggle").setAttribute("aria-expanded", "false");
   }
 
-  document.getElementById("cartToggle").addEventListener("click", openCart);
+  // Con JS attivo il link del carrello apre il drawer invece di navigare a /carrello
+  // (che resta comunque la pagina di riferimento senza JS).
+  document.getElementById("cartToggle").addEventListener("click", (e) => {
+    e.preventDefault();
+    refreshCart().then(openCart);
+  });
   document.getElementById("cartClose").addEventListener("click", closeCart);
   document.getElementById("cartScrim").addEventListener("click", closeCart);
 
@@ -251,14 +282,14 @@
         MENU_DATA = data;
         initTabs();
         renderGrid();
-        renderCart();
+        refreshCart();
       })
       .catch(err => {
         console.error("Impossibile caricare i dati del menu:", err);
-        // fallback: la griglia server-side resta comunque visibile,
-        // ma il modale di dettaglio/personalizzazione non funzionerà
+        // fallback: la griglia server-side resta comunque visibile e i form
+        // di aggiunta al carrello continuano a funzionare come submit normali;
+        // solo il modale di dettaglio/personalizzazione non sarà disponibile.
         initTabs();
-        renderCart();
       });
   }
 

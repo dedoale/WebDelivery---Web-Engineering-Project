@@ -39,8 +39,7 @@ public abstract class BaseServlet extends HttpServlet {
         freemarkerConfig.setDefaultEncoding("UTF-8");
         freemarkerConfig.setTemplateExceptionHandler(TemplateExceptionHandler.HTML_DEBUG_HANDLER);
 
-        // Aggiunge il supporto nativo per java.time.LocalDateTime e LocalDate in
-        // Freemarker
+        // Aggiunge il supporto nativo per java.time.LocalDateTime e LocalDate in Freemarker
         Java8ObjectWrapper ow = new Java8ObjectWrapper(Configuration.VERSION_2_3_32);
         ow.setDefaultDateType(freemarker.template.TemplateDateModel.DATETIME);
         ow.setForceLegacyNonListCollections(false);
@@ -123,8 +122,8 @@ public abstract class BaseServlet extends HttpServlet {
         return false;
     }
 
-    // Utility per fare il parsing sicuro dei parametri numerici (con default in
-    // caso di errore)
+    // Utility per fare il parsing sicuro dei parametri numerici 
+    // (default in caso di errore)
     protected int getIntParameter(HttpServletRequest request, String name, int defaultValue) {
         String value = request.getParameter(name);
         if (value == null || value.trim().isEmpty()) {

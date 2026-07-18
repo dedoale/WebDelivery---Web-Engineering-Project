@@ -7,6 +7,9 @@
   });
   const slug = (s) => s.toLowerCase().replace(/\s+/g, "-");
 
+  // Gli ordini vengono caricati da /api/ordini (Gson), 
+  // che restituisce gia' solo gli ordini del cliente loggato.
+  let ORDINI_CLIENTE = [];
   let currentFilter = "in-corso";
 
   function isInCorso(ordine) {
@@ -104,5 +107,19 @@
     });
   });
 
-  render();
+  function init() {
+    fetch("api/ordini")
+      .then(r => r.json())
+      .then(data => {
+        ORDINI_CLIENTE = data;
+        render();
+      })
+      .catch(err => {
+        console.error("Errore nel caricamento degli ordini:", err);
+        document.getElementById("ordersEmpty").hidden = false;
+        document.getElementById("ordersEmpty").textContent = "Impossibile caricare i tuoi ordini. Riprova.";
+      });
+  }
+
+  init();
 })();

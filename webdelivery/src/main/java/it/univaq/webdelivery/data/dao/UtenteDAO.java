@@ -1,14 +1,18 @@
 package it.univaq.webdelivery.data.dao;
 
-import it.univaq.webdelivery.data.DbConnectionManager;
-import it.univaq.webdelivery.data.model.Utente;
-import it.univaq.webdelivery.util.PasswordUtil;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import it.univaq.webdelivery.data.DbConnectionManager;
+import it.univaq.webdelivery.data.model.Utente;
+import it.univaq.webdelivery.util.PasswordUtil;
 
 public class UtenteDAO {
 

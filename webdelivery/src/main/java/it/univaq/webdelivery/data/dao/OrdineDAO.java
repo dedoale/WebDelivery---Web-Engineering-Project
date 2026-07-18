@@ -191,7 +191,7 @@ public class OrdineDAO {
             conn = DbConnectionManager.getConnection();
             conn.setAutoCommit(false);
 
-            // Recupero stato attuale db
+            // Recupero stato attuale dal db
             String statoAttuale = null;
             try (PreparedStatement psSelect = conn.prepareStatement(selectSql)) {
                 psSelect.setInt(1, idOrdine);
