@@ -3,7 +3,9 @@ package it.univaq.webdelivery.util;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-// controllo lato server dell'orario di consegna che gia' viene calcolato nel javascript
+/**
+ * controllo lato server dell'orario di consegna che gia' viene calcolato nel javascript
+ */
 
 public final class OrarioConsegna {
 
@@ -58,7 +60,7 @@ public final class OrarioConsegna {
                 // calcolo orario minimo di consegna
                 LocalDateTime orarioMinimoConsentito = inizioPrep.plusMinutes(tempoConsegnaStimatoMinuti);
 
-                // 4. orarioRichiesto non può essere precedente a orarioMinimoConsentito
+                // orarioRichiesto non può essere precedente a orarioMinimoConsentito
                 if (!orarioRichiesto.isBefore(orarioMinimoConsentito)) {
                     return true;
                 }

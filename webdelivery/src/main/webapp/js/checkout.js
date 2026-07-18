@@ -1,10 +1,10 @@
 (function () {
   "use strict";
-
-  // Il riepilogo ordine e l'orario di default sono già renderizzati lato
-  // server (checkout.ftl / CheckoutServlet): qui ci limitiamo a migliorare
-  // l'esperienza sul campo orario (validazione live, fasce orarie), senza
-  // essere necessari al funzionamento di base del checkout.
+/**
+ * Il riepilogo ordine e l'orario di default sono già renderizzati lato server 
+ * qui ci sono la validazione live e le fasce orarie, ma non
+ * sono necessarie al funzionamento di base del checkout.
+ */
 
   const form = document.getElementById("deliveryForm");
   if (!form) return; // niente da fare (carrello vuoto o ordine già confermato)

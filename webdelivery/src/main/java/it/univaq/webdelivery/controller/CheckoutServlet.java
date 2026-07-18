@@ -69,8 +69,7 @@ public class CheckoutServlet extends BaseServlet {
 
         String orario = request.getParameter("orario");
 
-        // Ricalcola prezzi/tempi leggendo dal DB per sicurezza (non ci fidiamo
-        // di quanto già calcolato quando le righe sono state aggiunte al carrello)
+        // Ricalcola prezzi/tempi leggendo dal DB per sicurezza
         Riepilogo r = calcolaRiepilogo(carrello);
         int tempoConsegnaStimato = r.tempoPreparazione + TEMPO_PERCORRENZA_MIN;
 

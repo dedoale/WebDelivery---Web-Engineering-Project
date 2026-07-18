@@ -47,39 +47,6 @@
 </footer>
 
 <script>
-    const ORDINI_CLIENTE = [
-        <#list ordini as o>
-        {
-            id: "${o.id?js_string}",
-            orario_richiesto: "${o.orarioRichiesto.format("yyyy-MM-dd'T'HH:mm:ss")}",
-            prezzo_totale: ${o.prezzoTotale?c},
-            stato_attuale: "${o.statoAttuale?js_string}",
-            righe: [
-                <#list o.righe as r>
-                {
-                    nome: "${r.nome?js_string}",
-                    qty: ${r.qty},
-                    opzioni: [
-                        <#list r.opzioni as v>
-                        "${v?js_string}"<#sep>, </#sep>
-                        </#list>
-                    ]
-                }<#sep>,</#sep>
-                </#list>
-            ],
-            storico: [
-                <#list o.storico as st>
-                {
-                    stato: "${st.stato?js_string}",
-                    personale: "${(st.personale!'')?js_string}",
-                    timestamp: "${st.timestamp.format("yyyy-MM-dd'T'HH:mm:ss")}"
-                }<#sep>,</#sep>
-                </#list>
-            ]
-        }<#sep>,</#sep>
-        </#list>
-    ];
-
     const STATI_ORDINE = ["Inserito", "In preparazione", "Pronto", "In consegna", "Consegnato"];
 </script>
 <script src="js/orders.js"></script>

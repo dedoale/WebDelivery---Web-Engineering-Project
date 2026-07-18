@@ -13,8 +13,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-// Espone il catalogo prodotti in JSON, cosi' il frontend (menu.js) puo' restare
-// un file JS statico e indipendente dal template Freemarker (niente dati inline in index.ftl).
+// Espone il catalogo prodotti in JSON
+
 @WebServlet(name = "MenuDataServlet", urlPatterns = {"/api/prodotti"})
 public class MenuDataServlet extends BaseServlet {
     private ProdottoDAO prodottoDAO;

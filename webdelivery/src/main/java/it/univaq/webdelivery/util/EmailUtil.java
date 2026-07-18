@@ -1,16 +1,18 @@
 package it.univaq.webdelivery.util;
 
-import it.univaq.webdelivery.data.model.Ordine;
-import it.univaq.webdelivery.data.model.Utente;
-import jakarta.mail.*;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
-
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import it.univaq.webdelivery.data.model.Ordine;
+import it.univaq.webdelivery.data.model.Utente;
+import jakarta.mail.Message;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 
 public class EmailUtil {
 
@@ -49,7 +51,7 @@ public class EmailUtil {
 
                 message.setText(text);
                 Transport.send(message);
-                LOGGER.info("Email di conferma inviata con successo a " + cliente.getEmail());
+                LOGGER.info(() -> "Email di conferma inviata con successo a " + cliente.getEmail());
 
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "Errore nell'invio dell'email di conferma a " + cliente.getEmail(), e);
@@ -75,7 +77,7 @@ public class EmailUtil {
 
                 message.setText(text);
                 Transport.send(message);
-                LOGGER.info("Email di notifica in consegna inviata con successo a " + cliente.getEmail());
+                LOGGER.info(() -> "Email di notifica in consegna inviata con successo a " + cliente.getEmail());
 
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "Errore nell'invio dell'email 'in consegna' a " + cliente.getEmail(), e);

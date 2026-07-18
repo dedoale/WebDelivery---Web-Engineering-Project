@@ -7,6 +7,12 @@
   });
   const slug = (s) => s.toLowerCase().replace(/\s+/g, "-");
 
+  // I dati vengono caricati da /api/prodotti, /api/personale e /api/ordini (Gson),
+  // esattamente come fa menu.js per il catalogo pubblico.
+  let MENU_DATA = { prodotti: [] };
+  let STAFF_DATA = [];
+  let ORDINI_CORRENTI = [];
+
   // navigazione fra i tab
   document.querySelectorAll("#adminNav button").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -264,9 +270,27 @@
   document.getElementById("formNewProduct").addEventListener("submit", () => serializeForms('new'));
   document.getElementById("formEditProduct").addEventListener("submit", () => serializeForms('edit'));
 
-  // init
-  renderAllOrders();
-  renderMenuTable();
-  renderStaffTable();
+  // Carica prodotti, personale e ordini dalle API JSON, poi avvia il
+  // rendering delle tre tabelle/liste della dashboard.
+  function init() {
+    Promise.all([
+      fetch("api/prodotti").then(r => r.json()),
+      fetch("api/personale").then(r => r.json()),
+      fetch("api/ordini").then(r => r.json())
+    ])
+      .then(([menuData, staffData, ordini]) => {
+        MENU_DATA = menuData;
+        STAFF_DATA = staffData;
+        ORDINI_CORRENTI = ordini;
+        renderAllOrders();
+        renderMenuTable();
+        renderStaffTable();
+      })
+      .catch(err => {
+        console.error("Errore nel caricamento dei dati della dashboard:", err);
+      });
+  }
+
+  init();
 
 })();

@@ -1,11 +1,12 @@
 (function () {
   "use strict";
 
-  // Il carrello "di verità" vive lato server, in sessione (vedi CarrelloServlet):
-  // questo garantisce che aggiungere/rimuovere un prodotto funzioni anche senza
-  // JavaScript, tramite i normali <form> renderizzati da Freemarker. Qui teniamo
-  // solo una copia locale per il rendering rapido del drawer, sincronizzata
-  // via fetch verso gli stessi endpoint usati dai form.
+/** Gestisce il carrello lato server (sessione),
+ * JS disattivato: aggiungere/rimuovere un articolo funziona comunque tramite <form>
+ * 
+ * JS attivo: menu.js intercetta gli stessi endpoint via fetch per
+ * offrire l'esperienza "arricchita" (modale, drawer animato, ecc)
+ */
   let cart = [];
 
   function addToCartServer(prodottoId, qty, opzioniScelte) {
@@ -72,10 +73,8 @@
       btn.addEventListener("click", () => openModal(Number(btn.dataset.id)));
     });
 
-    // Il form "Aggiungi al carrello" di ogni card resta funzionante come
-    // submit normale se JS non è attivo. Con JS attivo lo intercettiamo per
-    // evitare il ricaricamento della pagina, ma il comportamento (aggiunta
-    // con le caratteristiche di default) resta identico.
+    // Intercettiamo il form "Aggiungi al carrello" per evitare il ricaricamento della pagina,
+    //  il comportamento (aggiunta con le caratteristiche di default) resta identico
     grid.querySelectorAll(".product-card form").forEach(form => {
       form.addEventListener("submit", (e) => {
         e.preventDefault();

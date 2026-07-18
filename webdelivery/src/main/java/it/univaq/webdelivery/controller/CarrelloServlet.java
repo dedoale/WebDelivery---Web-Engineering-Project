@@ -17,10 +17,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-// Gestisce il carrello lato server (sessione), cosi' che aggiungere/rimuovere
-// un prodotto funzioni anche con JavaScript disattivato tramite normali <form>.
-// Con JS attivo, menu.js intercetta questi stessi endpoint via fetch per
-// offrire l'esperienza "arricchita" (modale, drawer animato, ecc).
+/** Gestisce il carrello lato server (sessione),
+ * JS disattivato: aggiungere/rimuovere un articolo funziona comunque tramite <form>
+ * 
+ * JS attivo: menu.js intercetta gli stessi endpoint via fetch per
+ * offrire l'esperienza "arricchita" (modale, drawer animato, ecc)
+ */
 @WebServlet(name = "CarrelloServlet", urlPatterns = { "/carrello", "/carrello/aggiungi", "/carrello/rimuovi" })
 public class CarrelloServlet extends BaseServlet {
     public static final String SESSION_KEY = "carrello";

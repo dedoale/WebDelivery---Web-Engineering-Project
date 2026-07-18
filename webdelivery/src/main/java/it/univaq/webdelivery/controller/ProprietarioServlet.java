@@ -8,25 +8,25 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import it.univaq.webdelivery.data.dao.OrdineDAO;
 import it.univaq.webdelivery.data.dao.ProdottoDAO;
 import it.univaq.webdelivery.data.dao.UtenteDAO;
-import it.univaq.webdelivery.data.model.Caratteristica;
+import it.univaq.webdelivery.data.dto.GruppoCaratteristicaInputDTO;
 import it.univaq.webdelivery.data.model.GruppoCaratteristica;
 import it.univaq.webdelivery.data.model.Ordine;
 import it.univaq.webdelivery.data.model.Prodotto;
 import it.univaq.webdelivery.data.model.RigaOrdine;
 import it.univaq.webdelivery.data.model.Utente;
+import it.univaq.webdelivery.util.GsonProvider;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -123,13 +123,12 @@ public class ProprietarioServlet extends BaseServlet {
             }
         }
 
+        // i dati arrivano a proprietario.js via fetch 
+        // da /api/prodotti, /api/personale e /api/ordini (Gson)
+
+        // le statistiche aggregate vengono renderizzato da Freemarker direttamente in HTML.
         Map<String, Object> dataModel = new HashMap<>();
         dataModel.put("utente", utente);
-        dataModel.put("prodotti", prodottoDAO.getAll());
-        dataModel.put("staff", utenteDAO.getStaffList());
-        dataModel.put("ordini", ordini);
-        
-        // passa statistiche al modello
         dataModel.put("statDate", targetDate.toString());
         dataModel.put("incassoGiorno", incassoGiorno);
         dataModel.put("incassoMese", incassoMese);
@@ -239,7 +238,8 @@ public class ProprietarioServlet extends BaseServlet {
 
         String ingrJson = request.getParameter("ingredienti_json");
         if (ingrJson != null && !ingrJson.trim().isEmpty()) {
-            p.setIngredienti(parseIngredienti(ingrJson));
+            Prodotto.IngredienteConQuantita[] arr = GsonProvider.get().fromJson(ingrJson, Prodotto.IngredienteConQuantita[].class);
+            p.setIngredienti(new ArrayList<>(Arrays.asList(arr)));
         }
 
         String carattJson = request.getParameter("caratteristiche_json");
@@ -248,69 +248,13 @@ public class ProprietarioServlet extends BaseServlet {
         }
     }
 
-    private List<Prodotto.IngredienteConQuantita> parseIngredienti(String json) {
-        List<Prodotto.IngredienteConQuantita> list = new ArrayList<>();
-        Pattern p = Pattern.compile("\\{\\s*\"nome\"\\s*:\\s*\"(.*?)\"\\s*,\\s*\"quantita\"\\s*:\\s*\"(.*?)\"\\s*\\}");
-        Matcher m = p.matcher(json);
-        while (m.find()) {
-            list.add(new Prodotto.IngredienteConQuantita(m.group(1), m.group(2)));
-        }
-        return list;
-    }
-
+    // Converte il JSON dei gruppi/opzioni (in proprietario.js) nelle entity di dominio, tramite i DTO
     private List<GruppoCaratteristica> parseCaratteristiche(String json) {
+        GruppoCaratteristicaInputDTO[] input = GsonProvider.get().fromJson(json, GruppoCaratteristicaInputDTO[].class);
         List<GruppoCaratteristica> list = new ArrayList<>();
-        List<String> groups = splitJsonArray(json);
-        for(String grpStr : groups) {
-            GruppoCaratteristica g = new GruppoCaratteristica();
-            g.setNome(extractString(grpStr, "\"nome\"\\s*:\\s*\"(.*?)\""));
-            g.setMutuaEsclusione(grpStr.contains("\"mutua_esclusione\":true") || grpStr.contains("\"mutua_esclusione\" : true"));
-            
-            String opzioniStr = extractString(grpStr, "\"opzioni\"\\s*:\\s*\\[(.*)\\]");
-            if (opzioniStr != null && !opzioniStr.trim().isEmpty()) {
-                List<String> opzioni = splitJsonArray("[" + opzioniStr + "]");
-                List<Caratteristica> opts = new ArrayList<>();
-                for(String optStr : opzioni) {
-                    Caratteristica c = new Caratteristica();
-                    c.setNome(extractString(optStr, "\"nome\"\\s*:\\s*\"(.*?)\""));
-                    String diffPrezzoStr = extractString(optStr, "\"diff_prezzo\"\\s*:\\s*([\\d.-]+)");
-                    if (diffPrezzoStr != null) {
-                        c.setDifferenzaPrezzo(Double.parseDouble(diffPrezzoStr));
-                    }
-                    c.setDefault(optStr.contains("\"is_default\":true") || optStr.contains("\"is_default\" : true"));
-                    opts.add(c);
-                }
-                g.setOpzioni(opts);
-            }
-            list.add(g);
+        for (GruppoCaratteristicaInputDTO dto : input) {
+            list.add(dto.toEntity());
         }
         return list;
-    }
-
-    private List<String> splitJsonArray(String json) {
-        List<String> list = new ArrayList<>();
-        int depth = 0;
-        StringBuilder sb = new StringBuilder();
-        for (char c : json.toCharArray()) {
-            if (c == '{') depth++;
-            if (depth > 0) sb.append(c);
-            if (c == '}') {
-                depth--;
-                if (depth == 0) {
-                    list.add(sb.toString());
-                    sb.setLength(0);
-                }
-            }
-        }
-        return list;
-    }
-
-    private String extractString(String json, String patternStr) {
-        Pattern p = Pattern.compile(patternStr);
-        Matcher m = p.matcher(json);
-        if (m.find()) {
-            return m.group(1);
-        }
-        return null;
     }
 }

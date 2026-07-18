@@ -7,6 +7,10 @@
   const slug = (s) => s.toLowerCase().replace(/\s+/g, "-");
   const prodottoById = (id) => MENU_DATA.prodotti.find(p => p.id === id);
 
+  // I dati vengono caricati da /api/prodotti, /api/personale e /api/ordini (Gson)
+  let MENU_DATA = { prodotti: [] };
+  let ORDINI_CORRENTI = [];
+
   let currentFilter = "tutti";
   document.getElementById("staffName").textContent = PERSONALE_CORRENTE;
 
@@ -164,6 +168,26 @@
     if (e.key === "Escape") document.getElementById("staffModalBackdrop").classList.remove("open");
   });
 
-  renderTabs();
-  renderList();
+  // Carica prodotti e ordini correnti dalle API JSON, poi avvia il rendering.
+  // /api/ordini filtra gia' lato server in base al ruolo in sessione
+
+  function init() {
+    Promise.all([
+      fetch("api/prodotti").then(r => r.json()),
+      fetch("api/ordini").then(r => r.json())
+    ])
+      .then(([menuData, ordini]) => {
+        MENU_DATA = menuData;
+        ORDINI_CORRENTI = ordini;
+        renderTabs();
+        renderList();
+      })
+      .catch(err => {
+        console.error("Errore nel caricamento degli ordini:", err);
+        document.getElementById("staffOrdersEmpty").hidden = false;
+        document.getElementById("staffOrdersEmpty").textContent = "Impossibile caricare gli ordini. Riprova.";
+      });
+  }
+
+  init();
 })();
