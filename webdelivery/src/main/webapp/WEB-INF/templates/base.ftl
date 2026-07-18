@@ -1,3 +1,9 @@
+<#macro footer>
+<footer class="site-footer">
+  <p>Progetto didattico realizzato per il corso di Web Engineering — Univaq Food Delivery™ è un'attività fittizia.</p>
+</footer>
+</#macro>
+
 <#macro page title="Univaq Food Delivery" customCss="" customScripts="">
 <!DOCTYPE html>
 <html lang="it">
@@ -51,9 +57,7 @@
 
 <#nested>
 
-<footer class="site-footer">
-  <p>Progetto didattico realizzato per il corso di Web Engineering — Univaq Food Delivery™ è un'attività fittizia.</p>
-</footer>
+<@footer/>
 
 <!-- Modale dettaglio/personalizzazione prodotto -->
 <div class="modal-backdrop" id="modalBackdrop">
@@ -65,7 +69,7 @@
     
     <div class="modal-body">
       <!-- Titolo e descrizione con le stesse spaziature della card -->
-      <h3 id="modalTitle" style="font-family: var(--font-display); font-size: 1.4rem; margin-top: 0; margin-bottom: 0.5rem;"></h3>
+      <h2 id="modalTitle" style="font-family: var(--font-display); font-size: 1.4rem; margin-top: 0; margin-bottom: 0.5rem;">&nbsp;</h2>
       <p class="modal-desc" id="modalDesc" style="margin: 0;"></p>
 
       <!-- Contenitore delle varianti -->

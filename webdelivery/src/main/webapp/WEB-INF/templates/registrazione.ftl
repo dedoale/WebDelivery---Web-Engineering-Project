@@ -1,27 +1,5 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Registrati — Univaq Food Delivery</title>
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/auth.css">
-</head>
-<body>
-
-<header class="site-header">
-  <div class="header-inner">
-    <a href="menu" class="brand">
-      <span class="brand-mark">UFD</span>
-      <span class="brand-name">Univaq Food Delivery</span>
-    </a>
-    <nav class="main-nav" aria-label="Navigazione principale">
-      <a href="menu#menu">Menu</a>
-      <a href="menu#chi-siamo">Chi siamo</a>
-      <a href="menu#dove-siamo">Dove siamo</a>
-    </nav>
-  </div>
-</header>
+<#import "base.ftl" as layout>
+<@layout.page title="Registrati — Univaq Food Delivery" customCss="<link rel=\"stylesheet\" href=\"css/auth.css\">" customScripts="<script src='js/auth.js'></script>">
 
 <main class="auth-main">
   <section class="auth-ticket auth-ticket-wide">
@@ -63,7 +41,7 @@
 
       <div class="form-field">
         <label for="indirizzo">Indirizzo di consegna</label>
-        <input type="text" id="indirizzo" name="indirizzo" required autocomplete="street-address"
+        <input type="text" id="indirizzo" name="indirizzo" required autocomplete="address-line1"
                placeholder="Via, numero civico, città, CAP">
         <p class="field-error" id="indirizzoError" role="alert"></p>
       </div>
@@ -82,10 +60,4 @@
   </section>
 </main>
 
-<footer class="site-footer">
-  <p>Progetto didattico realizzato per il corso di Web Engineering — Univaq Food Delivery™ è un'attività fittizia.</p>
-</footer>
-
-<script src="js/auth.js"></script>
-</body>
-</html>
+</@layout.page>

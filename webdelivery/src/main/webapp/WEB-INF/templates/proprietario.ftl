@@ -1,3 +1,4 @@
+<#import "base.ftl" as layout>
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -24,6 +25,7 @@
 </header>
 
 <main class="admin-main">
+  <h1 class="visually-hidden">Dashboard Proprietario</h1>
   <nav class="admin-nav" id="adminNav" aria-label="Menu amministrazione">
     <button data-target="sec-statistiche" class="active">Statistiche</button>
     <button data-target="sec-ordini">Tutti gli Ordini</button>
@@ -33,6 +35,12 @@
 
   <!-- statistiche -->
   <section id="sec-statistiche" class="admin-section">
+    <div class="section-head-admin">
+      <div>
+        <p class="ticket-eyebrow">Andamento attività</p>
+        <h2>Statistiche</h2>
+      </div>
+    </div>
     <form class="stats-controls" action="proprietario" method="GET">
       <div class="form-field">
         <label for="statDate">Data di riferimento</label>
@@ -273,9 +281,7 @@
     </div>
   </div>
 
-<footer class="site-footer">
-  <p>Progetto didattico realizzato per il corso di Web Engineering — Univaq Food Delivery™ è un'attività fittizia.</p>
-</footer>
+<@layout.footer/>
 
 <script src="js/proprietario.js?v=3"></script>
 </body>
