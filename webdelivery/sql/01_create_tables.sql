@@ -57,6 +57,7 @@ CREATE DATABASE IF NOT EXISTS webdelivery;
         id_prodotto INT NOT NULL,
         nome VARCHAR(100) NOT NULL,
         mutua_esclusione BOOLEAN NOT NULL DEFAULT 0,
+        is_active BOOLEAN NOT NULL DEFAULT 1,
         FOREIGN KEY (id_prodotto) REFERENCES Prodotto(id) ON DELETE CASCADE
     );
 
@@ -67,6 +68,7 @@ CREATE DATABASE IF NOT EXISTS webdelivery;
         descrizione VARCHAR(255),
         differenza_prezzo DECIMAL(6,2) NOT NULL DEFAULT 0.00,
         is_default BOOLEAN NOT NULL DEFAULT 0,
+        is_active BOOLEAN NOT NULL DEFAULT 1,
         FOREIGN KEY (id_gruppo) REFERENCES Gruppo_Caratteristica(id) ON DELETE CASCADE
     );
 

@@ -46,7 +46,7 @@ public class EmailUtil {
                         "- Numero Ordine: " + ordine.getId() + "\n" +
                         "- Totale: €" + String.format("%.2f", ordine.getPrezzoTotale()) + "\n" +
                         "- Orario Consegna Richiesto: " + ordine.getOrarioRichiesto().toString() + "\n\n" +
-                        "Ti manderemo un'altra email non appena l'ordine sara' in consegna.\n\n" +
+                        "Ti manderemo un'altra email non appena l'ordine sarà in consegna.\n\n" +
                         "Il Team di UFD";
 
                 message.setText(text);
@@ -66,11 +66,11 @@ public class EmailUtil {
                 Message message = new MimeMessage(session);
                 message.setFrom(new InternetAddress("ordini@univaqfooddelivery.it", "Univaq Food Delivery"));
                 message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(cliente.getEmail()));
-                message.setSubject("Il tuo ordine #" + ordine.getId() + " e' in consegna!");
+                message.setSubject("Il tuo ordine #" + ordine.getId() + " è in consegna!");
 
                 String text = "Ciao " + cliente.getNome() + ",\n\n" +
                         "Il tuo ordine #" + ordine.getId()
-                        + " e' appena uscito dalla nostra cucina ed e' in consegna verso il tuo indirizzo!\n\n" +
+                        + " è appena uscito dalla nostra cucina ed è in consegna verso il tuo indirizzo!\n\n" +
                         "Preparati ad aprire la porta!\n\n" +
                         "Buon appetito,\n" +
                         "Il Team di UFD";

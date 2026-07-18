@@ -173,7 +173,7 @@ public class ProdottoDAO {
     // Carica i gruppi di caratteristiche per un prodotto
     private List<GruppoCaratteristica> getGruppiPerProdotto(Connection conn, int idProdotto) throws SQLException {
         List<GruppoCaratteristica> list = new ArrayList<>();
-        String sql = "SELECT * FROM Gruppo_Caratteristica WHERE id_prodotto = ?";
+        String sql = "SELECT * FROM Gruppo_Caratteristica WHERE id_prodotto = ? AND is_active = 1";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idProdotto);
             try (ResultSet rs = ps.executeQuery()) {
@@ -195,7 +195,7 @@ public class ProdottoDAO {
     // Carica le caratteristiche di un determinato gruppo
     private List<Caratteristica> getCaratteristichePerGruppo(Connection conn, int idGruppo) throws SQLException {
         List<Caratteristica> list = new ArrayList<>();
-        String sql = "SELECT * FROM Caratteristica WHERE id_gruppo = ?";
+        String sql = "SELECT * FROM Caratteristica WHERE id_gruppo = ? AND is_active = 1";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idGruppo);
             try (ResultSet rs = ps.executeQuery()) {
@@ -294,15 +294,22 @@ public class ProdottoDAO {
 
     private void updateGruppi(Connection conn, Prodotto p) throws SQLException {
         if (p.getGruppi() == null) return;
-        
+
         String updateGruppo = "UPDATE Gruppo_Caratteristica SET nome = ?, mutua_esclusione = ? WHERE id = ?";
         String updateCaratteristica = "UPDATE Caratteristica SET nome = ?, differenza_prezzo = ?, is_default = ? WHERE id = ?";
-        
-        // I nuovi inserimenti per aggiornamenti usano logiche simili a save
+
         String insertGruppo = "INSERT INTO Gruppo_Caratteristica (id_prodotto, nome, mutua_esclusione) VALUES (?, ?, ?)";
         String insertCaratteristica = "INSERT INTO Caratteristica (id_gruppo, nome, differenza_prezzo, is_default) VALUES (?, ?, ?, ?)";
-        
-        // Per semplicità non facciamo hard delete per evitare conflitti con gli ordini esistenti, facciamo solo update/insert.
+
+        // Non facciamo hard delete (per non rompere lo storico ordini che referenzia
+        // le caratteristiche): i gruppi/opzioni rimossi dal form vengono disattivati
+        // (is_active = 0) invece che cancellati fisicamente.
+        java.util.Set<Integer> gruppiInviati = new java.util.HashSet<>();
+        for (GruppoCaratteristica g : p.getGruppi()) {
+            if (g.getId() > 0) gruppiInviati.add(g.getId());
+        }
+        disattivaRimossi(conn, "Gruppo_Caratteristica", "id_prodotto", p.getId(), gruppiInviati);
+
         for (GruppoCaratteristica g : p.getGruppi()) {
             int idGruppo = g.getId();
             if (idGruppo > 0) {
@@ -323,8 +330,14 @@ public class ProdottoDAO {
                     }
                 }
             }
-            
+
             if (idGruppo != -1 && g.getOpzioni() != null) {
+                java.util.Set<Integer> opzioniInviate = new java.util.HashSet<>();
+                for (Caratteristica c : g.getOpzioni()) {
+                    if (c.getId() > 0) opzioniInviate.add(c.getId());
+                }
+                disattivaRimossi(conn, "Caratteristica", "id_gruppo", idGruppo, opzioniInviate);
+
                 for (Caratteristica c : g.getOpzioni()) {
                     if (c.getId() > 0) {
                         try (PreparedStatement ps = conn.prepareStatement(updateCaratteristica)) {
@@ -344,6 +357,32 @@ public class ProdottoDAO {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    // Disattiva (is_active = 0) le righe di 'tabella' collegate a 'idParent' tramite
+    // 'colonnaParent' che non sono più presenti in 'idDaMantenere'
+    private void disattivaRimossi(Connection conn, String tabella, String colonnaParent, int idParent,
+                                   java.util.Set<Integer> idDaMantenere) throws SQLException {
+        String selectSql = "SELECT id FROM " + tabella + " WHERE " + colonnaParent + " = ? AND is_active = 1";
+        java.util.List<Integer> daDisattivare = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(selectSql)) {
+            ps.setInt(1, idParent);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    if (!idDaMantenere.contains(id)) daDisattivare.add(id);
+                }
+            }
+        }
+        if (daDisattivare.isEmpty()) return;
+
+        String updateSql = "UPDATE " + tabella + " SET is_active = 0 WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
+            for (int id : daDisattivare) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
             }
         }
     }

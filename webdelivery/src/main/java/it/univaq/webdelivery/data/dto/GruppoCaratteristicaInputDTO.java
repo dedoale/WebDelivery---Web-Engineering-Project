@@ -13,17 +13,20 @@ import it.univaq.webdelivery.data.model.GruppoCaratteristica;
  * populateGruppi() lo converte poi nell'entity di dominio.
  */
 public class GruppoCaratteristicaInputDTO {
+    private int id;
     private String nome;
     private boolean mutua_esclusione;
     private List<OpzioneInputDTO> opzioni = new ArrayList<>();
 
     public static class OpzioneInputDTO {
+        private int id;
         private String nome;
         private double diff_prezzo;
         private boolean is_default;
 
         public Caratteristica toEntity() {
             Caratteristica c = new Caratteristica();
+            c.setId(id);
             c.setNome(nome);
             c.setDifferenzaPrezzo(diff_prezzo);
             c.setDefault(is_default);
@@ -33,6 +36,7 @@ public class GruppoCaratteristicaInputDTO {
 
     public GruppoCaratteristica toEntity() {
         GruppoCaratteristica g = new GruppoCaratteristica();
+        g.setId(id);
         g.setNome(nome);
         g.setMutuaEsclusione(mutua_esclusione);
         List<Caratteristica> opts = new ArrayList<>();
