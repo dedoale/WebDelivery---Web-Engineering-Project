@@ -25,9 +25,8 @@
 
 <main class="checkout-main">
 
-  <!-- ordine confermato -->
   <#if ordineConfermato??>
-    <!-- ordine confermato: Mostra i dati che arrivano dal Database -->
+    <!-- ordine confermato: mostra i dati salvati nel database -->
     <section class="confirm-state" id="confirmState">
       <div class="confirm-ticket">
         <p class="ticket-eyebrow">Ordine registrato</p>
@@ -42,56 +41,72 @@
         <a href="ordini" class="btn btn-ghost">Segui il tuo ordine</a>
       </div>
     </section>
-    <!-- Svuota il carrello dopo il salvataggio! -->
-  <script>localStorage.removeItem("wd_cart");</script>
+
+  <#elseif !carrello?? || carrello?size == 0>
+    <!-- carrello vuoto -->
+    <section class="empty-state" id="emptyState">
+      <p class="ticket-eyebrow">Comanda vuota</p>
+      <h1>Il carrello è vuoto</h1>
+      <p>Non hai ancora selezionato nessun piatto.</p>
+      <a href="menu#menu" class="btn btn-stamp">Torna al menu</a>
+    </section>
 
   <#else>
 
-  <!-- carrello vuoto -->
-  <section class="empty-state" id="emptyState" hidden>
-    <p class="ticket-eyebrow">Comanda vuota</p>
-    <h1>Il carrello è vuoto</h1>
-    <p>Non hai ancora selezionato nessun piatto.</p>
-    <a href="menu#menu" class="btn btn-stamp">Torna al menu</a>
-  </section>
+  <#if error??>
+    <p class="field-error" role="alert" style="margin: 1rem;">${error}</p>
+  </#if>
 
-  <!-- composizione ordine -->
-  <section class="checkout-layout" id="checkoutLayout" hidden>
+  <!-- composizione ordine: renderizzata interamente lato server -->
+  <section class="checkout-layout" id="checkoutLayout">
 
     <div class="order-summary">
       <p class="ticket-eyebrow">Riepilogo comanda</p>
       <h1>Il tuo ordine</h1>
 
-      <ul class="summary-list" id="summaryList"></ul>
+      <ul class="summary-list" id="summaryList">
+        <#list carrello as riga>
+          <li class="summary-item">
+            <div class="summary-item-top">
+              <span>${riga.qty} × ${riga.nome}</span>
+              <span>€${(riga.prezzoBaseAlMomento * riga.qty)?string("0.00")}</span>
+            </div>
+            <#if riga.opzioni?size gt 0>
+              <div class="summary-item-opts">${riga.opzioni?join(", ")}</div>
+            </#if>
+          </li>
+        </#list>
+      </ul>
 
       <div class="summary-totals">
         <div class="summary-row">
           <span>Tempo di preparazione stimato</span>
-          <strong id="summaryPrepTime">—</strong>
+          <strong id="summaryPrepTime">~${tempoPreparazione} min</strong>
         </div>
         <div class="summary-row muted">
           <span>+ Tempo di consegna stimato</span>
-          <strong id="summaryTravelTime">—</strong>
+          <strong id="summaryTravelTime">~${tempoPercorrenza} min</strong>
         </div>
         <div class="summary-row">
           <span>Consegna stimata tra</span>
-          <strong id="summaryTotalTime">—</strong>
+          <strong id="summaryTotalTime">~${tempoConsegnaStimato} min</strong>
         </div>
         <div class="summary-row summary-total">
           <span>Totale</span>
-          <strong id="summaryTotalPrice">€0,00</strong>
+          <strong id="summaryTotalPrice">€${totale?string("0.00")}</strong>
         </div>
       </div>
     </div>
 
-    <form class="delivery-form" id="deliveryForm" action="checkout" method="POST" novalidate>
+    <form class="delivery-form" id="deliveryForm" action="checkout" method="POST" novalidate
+          data-tempo-consegna="${tempoConsegnaStimato}">
       <p class="ticket-eyebrow">Consegna</p>
       <h2>Quando vuoi ricevere l'ordine?</h2>
 
       <div class="form-field">
         <label for="orario">Orario di consegna <span class="optional">(opzionale, default: il prima possibile)</span></label>
-        <input type="datetime-local" id="orario" name="orario">
-        <p class="field-hint" id="orarioHint">Calcolo la prima fascia disponibile…</p>
+        <input type="datetime-local" id="orario" name="orario" value="${orarioDefault.format('yyyy-MM-dd\'T\'HH:mm')}">
+        <p class="field-hint" id="orarioHint">Proposto: il prima possibile in base ai tempi di preparazione.</p>
         <p class="field-error" id="orarioError" role="alert"></p>
       </div>
 
@@ -117,42 +132,8 @@
   <p>Progetto didattico realizzato per il corso di Web Engineering — Univaq Food Delivery™ è un'attività fittizia.</p>
 </footer>
 
-<script>
-    <#if utente??>
-    const LOGGED_USER = { id: ${utente.id}, nome: "${utente.nome?js_string}" };
-    <#else>
-    const LOGGED_USER = null;
-    </#if>
-
-    // Iniezione dinamica dei dati dal database per il calcolo dei totali
-    const prodotti = [
-        <#list prodotti as p>
-        {
-            id: ${p.id},
-            nome: "${p.nome?js_string}",
-            prezzo_base: ${p.prezzoBase?c},
-            tempo_preparazione: ${p.tempoPreparazione},
-            gruppi_caratteristiche: [
-                <#list p.gruppi as g>
-                {
-                    id: ${g.id},
-                    nome: "${g.nome?js_string}",
-                    opzioni: [
-                        <#list g.opzioni as c>
-                        {
-                            id: ${c.id},
-                            nome: "${c.nome?js_string}",
-                            differenza_prezzo: ${c.differenzaPrezzo?c}
-                        }<#sep>,</#sep>
-                        </#list>
-                    ]
-                }<#sep>,</#sep>
-                </#list>
-            ]
-        }<#sep>,</#sep>
-        </#list>
-    ];
-</script>
+<#if !ordineConfermato?? && carrello?? && carrello?size gt 0>
 <script src="js/checkout.js"></script>
+</#if>
 </body>
 </html>

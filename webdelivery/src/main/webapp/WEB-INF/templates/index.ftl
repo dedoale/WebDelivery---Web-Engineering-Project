@@ -29,19 +29,23 @@
 
   <div class="menu-grid" id="menuGrid">
     <#list prodotti as p>
-    <article class="product-card" tabindex="0" data-id="${p.id}" role="button" data-cat="${p.categoria}" aria-label="${p.nome}, €${p.prezzoBase}">
-      <div class="product-img">
-        <#if p.immagine?? && p.immagine?trim != "">
-          <img src="img/${p.immagine}" alt="${p.nome}">
-        <#else>
-          Nessuna immagine
-        </#if>
-      </div>
-      <h3 class="product-name">${p.nome}</h3>
-      <p class="product-desc">${p.descrizione}</p>
-      <div class="product-foot">
+    <article class="product-card" data-id="${p.id}" data-cat="${p.categoria}">
+      <button type="button" class="product-open" data-id="${p.id}" aria-label="Apri dettagli di ${p.nome}, €${p.prezzoBase}">
+        <div class="product-img">
+          <#if p.immagine?? && p.immagine?trim != "">
+            <img src="img/${p.immagine}" alt="${p.nome}">
+          <#else>
+            Nessuna immagine
+          </#if>
+        </div>
+        <h3 class="product-name">${p.nome}</h3>
+        <p class="product-desc">${p.descrizione}</p>
+      </button>
+      <form class="product-foot" method="post" action="carrello/aggiungi">
+        <input type="hidden" name="prodotto_id" value="${p.id}">
         <span class="product-price">€${p.prezzoBase?string("0.00")}</span>
-      </div>
+        <button type="submit" class="btn btn-stamp btn-small">Aggiungi al carrello</button>
+      </form>
     </article>
     </#list>
   </div>

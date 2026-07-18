@@ -2,12 +2,9 @@ package it.univaq.webdelivery.controller;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import it.univaq.webdelivery.data.dao.OrdineDAO;
 import it.univaq.webdelivery.data.dao.ProdottoDAO;
@@ -15,13 +12,16 @@ import it.univaq.webdelivery.data.model.Ordine;
 import it.univaq.webdelivery.data.model.Prodotto;
 import it.univaq.webdelivery.data.model.RigaOrdine;
 import it.univaq.webdelivery.data.model.Utente;
+import it.univaq.webdelivery.util.OrarioConsegna;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet(name = "CheckoutServlet", urlPatterns = {"/checkout"})
+@WebServlet(name = "CheckoutServlet", urlPatterns = { "/checkout" })
 public class CheckoutServlet extends BaseServlet {
+    private static final int TEMPO_PERCORRENZA_MIN = 10;
+
     private OrdineDAO ordineDAO;
     private ProdottoDAO prodottoDAO;
 
@@ -34,106 +34,93 @@ public class CheckoutServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // controllo sessione
         Utente utente = richiediAutenticazione(request, response);
         if (utente == null) return;
 
+        List<RigaOrdine> carrello = CarrelloServlet.getCarrello(request);
         Map<String, Object> dataModel = new HashMap<>();
         dataModel.put("utente", utente);
-        dataModel.put("prodotti", prodottoDAO.getAll());
+        dataModel.put("carrello", carrello);
+
+        if (!carrello.isEmpty()) {
+            Riepilogo r = calcolaRiepilogo(carrello);
+            dataModel.put("totale", r.totale);
+            dataModel.put("tempoPreparazione", r.tempoPreparazione);
+            dataModel.put("tempoConsegnaStimato", r.tempoPreparazione + TEMPO_PERCORRENZA_MIN);
+            dataModel.put("tempoPercorrenza", TEMPO_PERCORRENZA_MIN);
+
+            LocalDateTime primoSlot = OrarioConsegna.primoSlotDisponibile(r.tempoPreparazione + TEMPO_PERCORRENZA_MIN);
+            dataModel.put("orarioDefault", primoSlot);
+        }
 
         renderTemplate("checkout.ftl", dataModel, request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // controllo sessione
         Utente utente = richiediAutenticazione(request, response);
         if (utente == null) return;
 
-
-        String orario = request.getParameter("orario");
-        String cartData = request.getParameter("cart_data");
-
-        Map<String, Object> dataModel = new HashMap<>();
-        dataModel.put("utente", utente);
-        dataModel.put("prodotti", prodottoDAO.getAll());
-
-        if (orario == null || cartData == null || cartData.trim().isEmpty()) {
-            dataModel.put("error", "Dati dell'ordine non completi.");
-            renderTemplate("checkout.ftl", dataModel, request, response);
-            return;
-        }
-
-        // Parsifica il carrello JSON inviato dal client
-        List<RigaOrdine> righe = parseCartJson(cartData);
-        if (righe.isEmpty()) {
+        List<RigaOrdine> carrello = CarrelloServlet.getCarrello(request);
+        if (carrello.isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/menu");
             return;
         }
 
-        // Calcola i prezzi e i tempi reali leggendo dal DB per sicurezza
-        double totaleOrdine = 0;
-        int tempoPreparazioneTotale = 0;
+        String orario = request.getParameter("orario");
 
-        for (RigaOrdine riga : righe) {
-            Prodotto p = prodottoDAO.getById(riga.getProdottoId());
-            if (p != null) {
-                riga.setNome(p.getNome());
-                // Ricalcoliamo il prezzo totale per sicurezza lato server
-                double prezzoRigaUnitario = p.getPrezzoBase();
-                
-                // Cerca le differenze prezzo delle caratteristiche scelte nel DB
-                for (RigaOrdine.CaratteristicaScelta scelta : riga.getCaratteristicheScelte()) {
-                    // Troviamo il prezzo della caratteristica associata
-                    double diff = getDifferenzaPrezzoCaratteristica(p, scelta.getIdCaratteristica());
-                    scelta.setDiffPrezzoAlMomento(diff);
-                    prezzoRigaUnitario += diff;
-                }
-                
-                riga.setPrezzoBaseAlMomento(prezzoRigaUnitario);
-                totaleOrdine += (prezzoRigaUnitario * riga.getQty());
-                tempoPreparazioneTotale += (p.getTempoPreparazione() * riga.getQty());
+        // Ricalcola prezzi/tempi leggendo dal DB per sicurezza (non ci fidiamo
+        // di quanto già calcolato quando le righe sono state aggiunte al carrello)
+        Riepilogo r = calcolaRiepilogo(carrello);
+        int tempoConsegnaStimato = r.tempoPreparazione + TEMPO_PERCORRENZA_MIN;
+
+        Map<String, Object> dataModel = new HashMap<>();
+        dataModel.put("utente", utente);
+        dataModel.put("carrello", carrello);
+        dataModel.put("totale", r.totale);
+        dataModel.put("tempoPreparazione", r.tempoPreparazione);
+        dataModel.put("tempoConsegnaStimato", tempoConsegnaStimato);
+        dataModel.put("tempoPercorrenza", TEMPO_PERCORRENZA_MIN);
+
+        // Se l'orario non è indicato (campo opzionale), usiamo il primo slot disponibile
+        LocalDateTime orarioRichiestoParsed;
+        if (orario == null || orario.trim().isEmpty()) {
+            orarioRichiestoParsed = OrarioConsegna.primoSlotDisponibile(tempoConsegnaStimato);
+        } else {
+            try {
+                orarioRichiestoParsed = LocalDateTime.parse(orario);
+            } catch (Exception e) {
+                dataModel.put("error", "Formato orario non valido.");
+                dataModel.put("orarioDefault", OrarioConsegna.primoSlotDisponibile(tempoConsegnaStimato));
+                renderTemplate("checkout.ftl", dataModel, request, response);
+                return;
             }
         }
 
-        // Aggiungiamo 10 minuti di percorrenza stimata, come definito in checkout.js
-        int tempoConsegnaStimato = tempoPreparazioneTotale + 10;
-
-        // validazione orario lato server con parsing
-        LocalDateTime orarioRichiestoParsed;
-        try {
-            orarioRichiestoParsed = LocalDateTime.parse(orario);
-        } catch (Exception e) {
-            dataModel.put("error", "Formato orario non valido.");
+        // Validazione lato server con 5 minuti di tolleranza
+        if (!OrarioConsegna.isOrarioValido(orarioRichiestoParsed, Math.max(0, tempoConsegnaStimato - 5))) {
+            dataModel.put("error", "L'orario di consegna richiesto non è valido o è fuori dalla fascia oraria. Riprova.");
+            dataModel.put("orarioDefault", OrarioConsegna.primoSlotDisponibile(tempoConsegnaStimato));
             renderTemplate("checkout.ftl", dataModel, request, response);
             return;
         }
 
-        // Validazione lato server con 5 minuti di tolleranza per confermare l'ordine 
-        if (!it.univaq.webdelivery.util.OrarioConsegna.isOrarioValido(orarioRichiestoParsed, Math.max(0, tempoConsegnaStimato - 5))) {
-            dataModel.put("error", "L'orario di consegna richiesto non è più valido o è fuori dalla fascia oraria. Ricarica la pagina e riprova.");
-            renderTemplate("checkout.ftl", dataModel, request, response);
-            return;
-        }
-
-        // Crea l'oggetto Ordine
         Ordine ordine = new Ordine();
         ordine.setIdCliente(utente.getId());
         ordine.setCliente(utente.getNome());
-        ordine.setPrezzoTotale(totaleOrdine);
+        ordine.setPrezzoTotale(r.totale);
         ordine.setTempoConsegnaStimato(tempoConsegnaStimato);
         ordine.setOrarioRichiesto(orarioRichiestoParsed);
         ordine.setStatoAttuale("Inserito");
-        ordine.setRighe(righe);
+        ordine.setRighe(carrello);
 
-        // Salva nel database
         if (ordineDAO.create(ordine)) {
             dataModel.put("ordineConfermato", true);
             dataModel.put("confermatoOrdine", ordine);
-            
-            // INVIA EMAIL DI CONFERMA
             it.univaq.webdelivery.util.EmailUtil.sendOrderConfirmation(utente, ordine);
+
+            // L'ordine è salvato: svuotiamo il carrello in sessione
+            carrello.clear();
         } else {
             dataModel.put("error", "Si è verificato un errore durante il salvataggio dell'ordine. Riprova.");
         }
@@ -141,7 +128,31 @@ public class CheckoutServlet extends BaseServlet {
         renderTemplate("checkout.ftl", dataModel, request, response);
     }
 
-    // Cerca la differenza di prezzo nel catalogo caricato
+    private Riepilogo calcolaRiepilogo(List<RigaOrdine> carrello) {
+        double totale = 0;
+        int tempoPreparazione = 0;
+
+        for (RigaOrdine riga : carrello) {
+            Prodotto p = prodottoDAO.getById(riga.getProdottoId());
+            if (p == null) continue;
+
+            riga.setNome(p.getNome());
+            double prezzoRigaUnitario = p.getPrezzoBase();
+            for (RigaOrdine.CaratteristicaScelta scelta : riga.getCaratteristicheScelte()) {
+                prezzoRigaUnitario += getDifferenzaPrezzoCaratteristica(p, scelta.getIdCaratteristica());
+            }
+            riga.setPrezzoBaseAlMomento(prezzoRigaUnitario);
+
+            totale += prezzoRigaUnitario * riga.getQty();
+            tempoPreparazione += p.getTempoPreparazione() * riga.getQty();
+        }
+
+        Riepilogo r = new Riepilogo();
+        r.totale = totale;
+        r.tempoPreparazione = tempoPreparazione;
+        return r;
+    }
+
     private double getDifferenzaPrezzoCaratteristica(Prodotto p, int idCaratteristica) {
         for (var gruppo : p.getGruppi()) {
             for (var opt : gruppo.getOpzioni()) {
@@ -153,84 +164,8 @@ public class CheckoutServlet extends BaseServlet {
         return 0.0;
     }
 
-    // Parser JSON personalizzato basato su Regex (Opzione A - Senza Gson)
-    private List<RigaOrdine> parseCartJson(String json) {
-        List<RigaOrdine> righe = new ArrayList<>();
-        if (json == null || !json.contains("{")) return righe;
-
-        List<String> items = splitJsonArray(json);
-        for (String item : items) {
-            RigaOrdine riga = new RigaOrdine();
-
-            int prodottoId = extractInt(item, "\"prodotto\"\\s*:\\s*\\{\\s*\"id\"\\s*:\\s*(\\d+)");
-            int qty = extractInt(item, "\"qty\"\\s*:\\s*(\\d+)");
-            double prezzo = extractDouble(item, "\"prezzoUnitario\"\\s*:\\s*([\\d.]+)");
-
-            riga.setProdottoId(prodottoId);
-            riga.setQty(qty);
-            riga.setPrezzoBaseAlMomento(prezzo);
-
-            String opzioniListStr = extractString(item, "\"opzioniScelte\"\\s*:\\s*\\[(.*?)\\]");
-            if (opzioniListStr != null && !opzioniListStr.trim().isEmpty()) {
-                Pattern optPattern = Pattern.compile("\\{\\s*\"id\"\\s*:\\s*\"?(\\d+)\"?.*?\"differenza_prezzo\"\\s*:\\s*([\\d.-]+)");
-                Matcher optMatcher = optPattern.matcher(opzioniListStr);
-                while (optMatcher.find()) {
-                    int optId = Integer.parseInt(optMatcher.group(1));
-                    double diff = Double.parseDouble(optMatcher.group(2));
-                    riga.getCaratteristicheScelte().add(new RigaOrdine.CaratteristicaScelta(optId, diff));
-                }
-            }
-            righe.add(riga);
-        }
-        return righe;
-    }
-
-    private List<String> splitJsonArray(String json) {
-        List<String> list = new ArrayList<>();
-        int depth = 0;
-        StringBuilder sb = new StringBuilder();
-        for (char c : json.toCharArray()) {
-            if (c == '{') {
-                depth++;
-            }
-            if (depth > 0) {
-                sb.append(c);
-            }
-            if (c == '}') {
-                depth--;
-                if (depth == 0) {
-                    list.add(sb.toString());
-                    sb.setLength(0);
-                }
-            }
-        }
-        return list;
-    }
-
-    private int extractInt(String json, String patternStr) {
-        Pattern p = Pattern.compile(patternStr);
-        Matcher m = p.matcher(json);
-        if (m.find()) {
-            return Integer.parseInt(m.group(1));
-        }
-        return 0;
-    }
-
-    private double extractDouble(String json, String patternStr) {
-        Pattern p = Pattern.compile(patternStr);
-        Matcher m = p.matcher(json);
-        if (m.find()) {
-            return Double.parseDouble(m.group(1));
-        }
-        return 0.0;
-    }
-
-    private String extractString(String json, String patternStr) {
-        Pattern p = Pattern.compile(patternStr);
-        Matcher m = p.matcher(json);
-        if (m.find()) {
-            return m.group(1);
-        }
-        return null;
+    private static class Riepilogo {
+        double totale;
+        int tempoPreparazione;
     }
 }

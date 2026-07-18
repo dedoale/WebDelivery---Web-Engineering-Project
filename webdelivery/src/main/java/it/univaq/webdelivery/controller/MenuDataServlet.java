@@ -92,6 +92,7 @@ public class MenuDataServlet extends BaseServlet {
     private String gruppoToJson(GruppoCaratteristica g) {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
+        sb.append("\"id\":").append(g.getId()).append(",");
         sb.append("\"nome\":").append(quote(g.getNome())).append(",");
         sb.append("\"mutua_esclusione\":").append(g.isMutuaEsclusione()).append(",");
         sb.append("\"opzioni\":[");
