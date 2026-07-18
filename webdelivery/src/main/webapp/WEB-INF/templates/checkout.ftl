@@ -1,27 +1,9 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Il tuo ordine — Univaq Food Delivery</title>
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/checkout.css">
-</head>
-<body>
-
-<header class="site-header">
-  <div class="header-inner">
-    <a href="menu" class="brand">
-      <span class="brand-mark">UFD</span>
-      <span class="brand-name">Univaq Food Delivery</span>
-    </a>
-    <nav class="main-nav" aria-label="Navigazione principale">
-      <a href="menu#menu">Menu</a>
-      <a href="menu#chi-siamo">Chi siamo</a>
-      <a href="menu#dove-siamo">Dove siamo</a>
-    </nav>
-  </div>
-</header>
+<#import "base.ftl" as layout>
+<#assign scriptTag = "">
+<#if !ordineConfermato?? && carrello?? && carrello?size gt 0>
+  <#assign scriptTag = "<script src='js/checkout.js'></script>">
+</#if>
+<@layout.page title="Il tuo ordine — Univaq Food Delivery" customCss="<link rel=\"stylesheet\" href=\"css/checkout.css\">" customScripts=scriptTag>
 
 <main class="checkout-main">
 
@@ -128,12 +110,4 @@
 
 </main>
 
-<footer class="site-footer">
-  <p>Progetto didattico realizzato per il corso di Web Engineering — Univaq Food Delivery™ è un'attività fittizia.</p>
-</footer>
-
-<#if !ordineConfermato?? && carrello?? && carrello?size gt 0>
-<script src="js/checkout.js"></script>
-</#if>
-</body>
-</html>
+</@layout.page>

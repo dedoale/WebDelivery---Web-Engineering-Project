@@ -5,7 +5,7 @@
 <main>
 <section class="menu-section" id="carrello-page">
   <div class="section-head">
-    <h2>Il tuo carrello</h2>
+    <h1>Il tuo carrello</h1>
   </div>
 
   <#if carrello?size == 0>

@@ -1,3 +1,4 @@
+<#import "base.ftl" as layout>
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -42,7 +43,7 @@
     <button class="modal-close" id="staffModalClose" aria-label="Chiudi">✕</button>
     <div class="modal-body">
       <p class="ticket-eyebrow" id="staffModalCategory">Categoria</p>
-      <h3 id="staffModalTitle">Nome prodotto</h3>
+      <h2 id="staffModalTitle">Nome prodotto</h2>
       <p class="modal-desc" id="staffModalDesc"></p>
 
       <div class="staff-internal">
@@ -59,9 +60,7 @@
   </div>
 </div>
 
-<footer class="site-footer">
-  <p>Progetto didattico realizzato per il corso di Web Engineering — Univaq Food Delivery™ è un'attività fittizia.</p>
-</footer>
+<@layout.footer/>
 
 <script>
     const PERSONALE_CORRENTE = "<#if utente??>${utente.nome?js_string}<#else>Ospite</#if>";
