@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ordini in corso — Personale — Univaq Food Delivery</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/orders.css">
+<link rel="stylesheet" href="css/staff.css">
+</head>
+<body class="staff-body">
+
+<header class="site-header staff-header">
+  <div class="header-inner">
+    <a href="personale" class="brand">
+      <span class="brand-mark">UFD</span>
+      <span class="brand-name">Cucina — Personale</span>
+    </a>
+    <div class="header-actions">
+      <span class="user-chip">Turno: <strong id="staffName">Amministratore</strong></span>
+      <a href="logout" class="btn btn-ghost btn-small">Esci</a>
+    </div>
+  </div>
+</header>
+
+<main class="staff-main">
+  <p class="ticket-eyebrow">Vista personale</p>
+  <h1>Ordini correnti</h1>
+  <p class="orders-sub">Aggiorna lo stato man mano che gli ordini avanzano in cucina. Gli stati si susseguono in ordine: non è possibile saltarli o tornare indietro.</p>
+
+  <nav class="orders-tabs" aria-label="Filtra per stato" id="statusTabs">
+    <!-- popolato via JS -->
+  </nav>
+
+  <div class="orders-list" id="staffOrdersList"></div>
+  <p class="orders-empty" id="staffOrdersEmpty" hidden>Nessun ordine in questo stato.</p>
+</main>
+
+
+<div class="modal-backdrop" id="staffModalBackdrop">
+  <div class="modal-ticket" role="dialog" aria-modal="true" aria-labelledby="staffModalTitle">
+    <button class="modal-close" id="staffModalClose" aria-label="Chiudi">✕</button>
+    <div class="modal-body">
+      <p class="ticket-eyebrow" id="staffModalCategory">Categoria</p>
+      <h2 id="staffModalTitle">Nome prodotto</h2>
+      <p class="modal-desc" id="staffModalDesc"></p>
+
+      <div class="staff-internal">
+        <p class="order-log-title">Tempo di preparazione</p>
+        <p id="staffModalTime"></p>
+
+        <p class="order-log-title">Ingredienti</p>
+        <ul class="ingredient-list" id="staffModalIngredients"></ul>
+
+        <p class="order-log-title">Procedura</p>
+        <p id="staffModalProcedure"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <p>Progetto didattico realizzato per il corso di Web Engineering — Univaq Food Delivery™ è un'attività fittizia.</p>
+</footer>
+
+<script>
+    const PERSONALE_CORRENTE = "Amministratore";
+    const STATI_ORDINE = ["Inserito", "In preparazione", "Pronto", "In consegna", "Consegnato"];
+</script>
+<script src="js/staff.js"></script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accedi — Univaq Food Delivery</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="menu" class="brand">
+      <span class="brand-mark">UFD</span>
+      <span class="brand-name">Univaq Food Delivery</span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navigazione principale">
+      <a href="menu#menu">Menu</a>
+      <a href="menu#chi-siamo">Chi siamo</a>
+      <a href="menu#dove-siamo">Dove siamo</a>
+    </nav>
+
+    <div class="header-actions">
+        <a href="login" class="btn btn-ghost">Accedi</a>
+        <a href="registrazione" class="btn btn-primary">Registrati</a>
+
+      <a class="cart-btn" id="cartToggle" href="carrello" aria-label="Apri carrello" aria-expanded="false">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
+        <span class="cart-count" id="cartCount">0</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+
+<main class="auth-main">
+  <section class="auth-ticket">
+    <p class="ticket-eyebrow">Accesso cliente</p>
+    <h1>Bentornato</h1>
+    <p class="auth-sub">Accedi per completare un ordine o rivedere lo storico dei tuoi acquisti.</p>
+
+
+    <!-- form action + method POST -->
+    <form class="auth-form" action="login" method="post" id="loginForm" novalidate>
+      <div class="form-field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required autocomplete="username" placeholder="mario.rossi@email.it">
+        <p class="field-error" id="emailError" role="alert"></p>
+      </div>
+
+      <div class="form-field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required minlength="8" autocomplete="current-password">
+        
+        <label class="checkbox-line">
+          <input type="checkbox" id="togglePwCheckbox"> Mostra password
+        </label>
+        
+        <p class="field-error" id="passwordError" role="alert"></p>
+      </div>
+
+      <div class="form-row">
+        <label class="checkbox-line">
+          <input type="checkbox" name="ricordami"> Ricordami su questo dispositivo
+        </label>
+        <a href="#" class="link-muted">Password dimenticata?</a>
+      </div>
+
+      <button type="submit" class="btn btn-stamp btn-full">Accedi</button>
+
+      <p class="auth-switch">Non hai un account? <a href="registrazione">Registrati come nuovo cliente</a></p>
+    </form>
+
+    <div class="ticket-tear" aria-hidden="true"></div>
+  </section>
+</main>
+
+
+<footer class="site-footer">
+  <p>Progetto didattico realizzato per il corso di Web Engineering — Univaq Food Delivery™ è un'attività fittizia.</p>
+</footer>
+
+<!-- Modale dettaglio/personalizzazione prodotto -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal-ticket" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button class="modal-close" id="modalClose" aria-label="Chiudi">&times;</button>
+    
+    <!-- L'immagine torna in alto a larghezza piena -->
+    <div class="modal-img" id="modalImg"></div>
+    
+    <div class="modal-body">
+      <!-- Titolo e descrizione con le stesse spaziature della card -->
+      <h2 id="modalTitle" style="font-family: var(--font-display); font-size: 1.4rem; margin-top: 0; margin-bottom: 0.5rem;">&nbsp;</h2>
+      <p class="modal-desc" id="modalDesc" style="margin: 0;"></p>
+
+      <!-- Contenitore delle varianti -->
+      <div class="char-group" id="modalGroups"></div>
+
+      <!-- Footer con quantità e bottone -->
+      <div class="modal-footer" style="display: flex; gap: 1rem; margin-top: 1.5rem; align-items: center;">
+        <div class="qty-control" style="display: flex; align-items: center; gap: .8em; border: 1.5px solid var(--ink); padding: .3em .6em;">
+          <button id="qtyMinus" aria-label="Diminuisci quantità" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;">&minus;</button>
+          <span id="qtyValue" style="font-weight: bold; min-width: 20px; text-align: center;">1</span>
+          <button id="qtyPlus" aria-label="Aumenta quantità" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;">&plus;</button>
+        </div>
+        <button class="btn btn-stamp modal-add" id="addToCart" style="flex-grow: 1;">
+          Aggiungi — <span id="modalPrice">€0,00</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cassetto carrello -->
+<div class="cart-scrim" id="cartScrim"></div>
+<aside class="cart-drawer" id="cartDrawer" aria-label="Carrello">
+  <div class="cart-drawer-head">
+    <h3>Il tuo carrello</h3>
+    <button class="cart-close" id="cartClose" aria-label="Chiudi carrello">&times;</button>
+  </div>
+
+  <p class="cart-empty" id="cartEmpty">Il carrello è vuoto.</p>
+  <ul class="cart-list" id="cartList"></ul>
+
+  <div class="cart-drawer-foot">
+    <div class="cart-summary">
+      <span>Totale</span>
+      <span id="cartTotal">€0,00</span>
+    </div>
+    <div class="cart-summary cart-summary-time">
+      <span>Tempo stimato</span>
+      <span id="cartTime">—</span>
+    </div>
+    <a href="checkout" class="btn btn-primary cart-checkout">Vai al checkout</a>
+  </div>
+</aside>
+
+<script src='js/auth.js'></script>
+</body>
+</html>
