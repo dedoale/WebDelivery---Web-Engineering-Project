@@ -27,7 +27,7 @@
 
   function isOrarioValido(data) {
     const now = new Date();
-    const minimo = new Date(now.getTime() + tempoConsegnaStimato * 60000);
+    const minimo = new Date(now.getTime() + (tempoConsegnaStimato - 1) * 60000);
     if (data < minimo) return false;
 
     return FASCE.some(f => {
