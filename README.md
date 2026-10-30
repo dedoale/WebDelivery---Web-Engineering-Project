@@ -1,7 +1,7 @@
 # WebDelivery — Documentazione di Progetto
 
 **Corso:** Web Engineering — A.A. 2025/2026, Specifica 1
-**Autori:** Alessia De Dominicis [matr. 295438], Pier Marco Graziani [matr. 266107]
+**Autori:** Alessia De Dominicis, Pier Marco Graziani
 **Repository:** https://github.com/dedoale/WebDelivery---Web-Engineering-Project
 
 ---
